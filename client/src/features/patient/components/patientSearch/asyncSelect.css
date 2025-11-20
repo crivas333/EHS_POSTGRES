@@ -1,0 +1,68 @@
+.async-select-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Adjust as needed */
+}
+
+.async-select-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.async-select-menu {
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.async-select-option {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.async-select-option:hover,
+.async-select-option.highlighted {
+  background: #f0f0f0;
+}
+
+.async-select-option.selected {
+  background: #007bff;
+  color: white;
+}
+
+.async-select-no-options {
+  padding: 8px;
+  color: #666;
+}
+
+.loading {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.async-select-wrapper.highlight-flash {
+  animation: highlightFade 1s ease-out;
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(52, 152, 219, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}

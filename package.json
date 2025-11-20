@@ -1,0 +1,48 @@
+{
+  "name": "myapp",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node server/src/index.js",
+    "dev:server": "nodemon server/src/index.js",
+    "dev:client": "yarn --cwd client dev",
+    "dev:fullstack": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
+    "build": "yarn --cwd client build"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^10.0.25",
+    "@graphql-tools/utils": "^10.9.1",
+    "bcryptjs": "^3.0.2",
+    "connect-mongo": "^5.1.0",
+    "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.5",
+    "dataloader": "^2.0.0",
+    "date-fns": "^2.21.3",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-graphql": "^0.12.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "graphql": "^16.11.0",
+    "graphql-http": "^1.22.4",
+    "graphql-playground-middleware-express": "^1.7.23",
+    "graphql-tag": "^2.12.6",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.1",
+    "mongoose": "^8.18.0",
+    "morgan": "^1.10.1",
+    "os": "^0.1.2",
+    "sequelize": "^6.37.7",
+    "standard": "^17.1.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.1.10"
+  }
+}

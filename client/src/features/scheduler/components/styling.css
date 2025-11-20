@@ -1,0 +1,14 @@
+h2.fc-toolbar-title {
+  color: #0052ba;
+  /*background: #000;*/
+  font-size: 1.2em !important;
+}
+.fc .fc-timegrid-slot {
+  height: 2.5em; /* 1.5em by default*/
+  border-bottom: 0 !important;
+}
+/*
+.fc-body .fc-row {
+  height: auto !important;
+}
+*/

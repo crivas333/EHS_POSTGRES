@@ -1,0 +1,65 @@
+
+mutation{
+  signUp(firstName: "carlos", LastName: "Escobedo" , userName: "calichi", email: "carlos@gmail.com", password: "Secret12"){
+    id
+  }
+}
+
+mutation{
+  signIn(email: "carlos@gmail.com", password: "Secret12"){
+    id
+  }
+}
+
+mutation{
+  signOut
+}
+
+{
+  me{
+    id
+    name
+    email
+  }
+}
+
+{
+  users{
+    id
+  }
+}
+
+{
+  user(id: "5f0cd8717d4c6a18fd75d2b2"){
+    id
+  }
+}
+
+{
+  users{
+    id
+    chats{
+      id
+    }
+  }
+}
+
+mutation{
+  createAppointment(subject: "cita", patient: "5f4bf6aa7866791a880a3329"){
+    id
+  }
+}
+
+mutation{
+  createPatient(dni: 12345678, firstName: "CARA", lastName: "CARITA", email: ""){
+    id
+    historyId
+  }
+}
+
+mutation{
+  createPatient(patientInput:{dni:12345678, firstName:"CARLOS", lastName:"TORO", lastName2:"VACA", birthDay:"08/12/1971", gender:"",email:""}){
+    id
+    historyId
+  }
+}

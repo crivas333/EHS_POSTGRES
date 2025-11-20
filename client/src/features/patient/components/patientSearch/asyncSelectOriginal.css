@@ -1,0 +1,10 @@
+.inputText {
+   
+    /*  text-transform: uppercase; */
+    text-transform: uppercase; 
+    /*color: rgb(41, 108, 208);*/
+    color: rgb(41, 208, 108);
+  }
+.boxSize {
+    width : 300px
+  }

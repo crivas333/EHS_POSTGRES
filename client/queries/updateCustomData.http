@@ -1,0 +1,10 @@
+POST http://localhost:3000/graphql
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+mutation{
+  updateApplicationFields(id: "5f0cd8717d4c6a18fd75d2b2", fieldData: "CONSULTA1"){
+    id
+    fieldData
+  }
+}

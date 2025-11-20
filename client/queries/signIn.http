@@ -1,0 +1,9 @@
+POST http://localhost:3000/graphql
+Content-Type: application/json
+X-Request-Type: GraphQL
+
+mutation{
+  signIn(email: "carlos@gmail.com", password: "Secret12"){
+    id
+  }
+}
