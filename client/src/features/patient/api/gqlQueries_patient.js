@@ -1,4 +1,33 @@
 import { gql } from "graphql-request";
+export const SEARCH_PATIENTS_ADVANCED = gql`
+  query SearchPatientsAdvanced(
+    $lastName: String
+    $firstName: String
+    $dob: String
+    $page: Int!
+    $limit: Int!
+  ) {
+    searchPatientsAdvanced(
+      lastName: $lastName
+      firstName: $firstName
+      dob: $dob
+      page: $page
+      limit: $limit
+    ) {
+      items {
+        id
+        fullName
+        idTypeNo
+        dateOfBirth
+        gender
+        mrn
+        phone
+      }
+      hasMore
+      totalCount
+    }
+  }
+`;
 
 export const GET_PATIENTS = gql`
   query {

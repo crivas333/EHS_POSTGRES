@@ -16,6 +16,7 @@ const drawerConfig = [
     defaultOpen: true,
     items: [
       { to: "/Paciente", label: "Ingreso de Pacientes", icon: <PersonAdd /> },
+      { to: "/PacienteTabla", label: "Table de Pacientes", icon: <PersonAdd /> },
       { to: "/Agendamiento", label: "Agendamiento", icon: <EventAvailable /> },
       { to: "/Citas", label: "Citas del Día", icon: <Today /> },
     ],

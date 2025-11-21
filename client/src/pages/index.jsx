@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import SiteLayout from "@/layouts/SiteLayout.jsx";
 import PatientView from "./PatientView";
+import PatientTablePage from "./PatientTablePage";
 import CalendarView from "./CalendarView.jsx";
 import AppoitmentsView from "./AppointmentsView.jsx";
 
@@ -26,6 +27,7 @@ export default function Pages() {
     <SiteLayout>
       <Routes>
         <Route path="/Paciente" element={<PatientView />} />
+         <Route path="/PacienteTabla" element={<PatientTablePage />} />
         <Route path="/Agendamiento" element={<CalendarView />} />
         <Route path="/Citas" element={<AppoitmentsView />} />
       
