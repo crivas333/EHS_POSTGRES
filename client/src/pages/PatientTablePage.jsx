@@ -28,13 +28,21 @@ export default function PatientTablePage() {
 
   const navigate = useNavigate();
 
-  // Reset pageIndex cuando cambian los filtros
+  // Reset page al cambiar filtros
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [debLast, debLast2, debFirst, searchMode]);
 
-  // Búsqueda real
+  // ← LA CLAVE: solo buscar si hay al menos un campo con 2+ caracteres
+  const hasValidSearch = debLast.length >= 2 || debLast2.length >= 2 || debFirst.length >= 2;
+
   useEffect(() => {
+    if (!hasValidSearch) {
+      // Limpiamos resultados sin llamar al backend
+      searchCombined({}); // o puedes tener un reset() en el hook
+      return;
+    }
+
     searchCombined({
       lastName: debLast,
       lastName2: debLast2,
@@ -42,14 +50,11 @@ export default function PatientTablePage() {
       mode: searchMode,
       pageIndex: pagination.pageIndex,
     });
-  }, [debLast, debLast2, debFirst, searchMode, pagination.pageIndex, searchCombined]);
+  }, [hasValidSearch, debLast, debLast2, debFirst, searchMode, pagination.pageIndex, searchCombined]);
 
-  const handlePatientClick = useCallback(
-    (patient) => {
-      navigate(`/patient/${patient.id}`);
-    },
-    [navigate]
-  );
+  const handlePatientClick = useCallback((patient) => {
+    navigate(`/patient/${patient.id}`);
+  }, [navigate]);
 
   const handleClear = useCallback(() => {
     setLastName("");
@@ -61,13 +66,9 @@ export default function PatientTablePage() {
 
   const activeFilters = [debLast, debLast2, debFirst].filter(Boolean).length;
 
-  // ← LÍNEA CORREGIDA: sin mezcla prohibida de ?? y &&
-  const pageCount =
-    totalCount > 0
-      ? Math.ceil(totalCount / pagination.pageSize)
-      : patients.length > 0
-        ? pagination.pageIndex + 2
-        : 0;
+  const pageCount = totalCount > 0 
+    ? Math.ceil(totalCount / pagination.pageSize) 
+    : 0;
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -87,10 +88,10 @@ export default function PatientTablePage() {
       <Box mt={3}>
         <PatientsTable
           data={patients}
-          pageCount={pageCount}           // ← ahora ESLint + TS felices
+          pageCount={pageCount}
           pagination={pagination}
           setPagination={setPagination}
-          isLoading={isLoading}
+          isLoading={isLoading && hasValidSearch} // solo loading si hay búsqueda activa
           onRowClick={handlePatientClick}
         />
       </Box>
