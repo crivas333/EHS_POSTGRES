@@ -74,6 +74,61 @@ export default {
         });
       }
     },
+    searchCombined: async (_, { lastName, lastName2, firstName, page = 1, limit = 20 }) => {
+      try {
+        const hasValidInput =
+          (lastName && lastName.trim().length >= 2) ||
+          (lastName2 && lastName2.trim().length >= 2) ||
+          (firstName && firstName.trim().length >= 2);
+
+        if (!hasValidInput) {
+          throw new GraphQLError("Debe proporcionar al menos un término de búsqueda válido (mínimo 2 caracteres)", {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
+        }
+
+        const offset = (page - 1) * limit;
+
+        const whereConditions = { [Op.and]: [] };
+
+        if (lastName) {
+          whereConditions[Op.and].push({
+            lastName: { [Op.iLike]: `%${lastName.trim()}%` },
+          });
+        }
+
+        if (lastName2) {
+          whereConditions[Op.and].push({
+            lastName2: { [Op.iLike]: `%${lastName2.trim()}%` },
+          });
+        }
+
+        if (firstName) {
+          whereConditions[Op.and].push({
+            firstName: { [Op.iLike]: `%${firstName.trim()}%` },
+          });
+        }
+
+        const patients = await Patient.findAll({
+          where: whereConditions,
+          order: [
+            ["lastName", "ASC"],
+            ["lastName2", "ASC"],
+            ["firstName", "ASC"],
+          ],
+          offset,
+          limit,
+        });
+
+        return patients ?? [];
+      } catch (err) {
+        console.error("Sequelize searchCombined error:", err);
+        if (err instanceof GraphQLError) throw err;
+        throw new GraphQLError("Error inesperado en búsqueda combinada", {
+          extensions: { code: "DB_ERROR" },
+        });
+      }
+    },
   },
 
   Mutation: {

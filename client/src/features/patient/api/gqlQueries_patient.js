@@ -66,6 +66,20 @@ export const SEARCH_PATIENT_BY_NAME = gql`
   }
 `;
 
+export const SEARCH_COMBINED = gql`
+  query SearchCombined($lastName: String, $lastName2: String, $firstName: String, $page: Int, $limit: Int) {
+    searchCombined(lastName: $lastName, lastName2: $lastName2, firstName: $firstName, page: $page, limit: $limit) {
+      id
+      firstName
+      lastName
+      lastName2
+      fullName
+      idTypeNo
+      birthDay
+    }
+  }
+`;
+
 export const AUTOCOMPLETE_SEARCH_PATIENT_BY_ID = gql`
   query patient($id: ID!) {
     patient(id: $id) {

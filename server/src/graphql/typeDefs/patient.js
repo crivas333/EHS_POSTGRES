@@ -9,6 +9,13 @@ export default gql`
     searchPatientsByLastName(lastName: String!): [Patient!]! @auth
     #searchPatientsByName(name: String!, page: Int, limit: Int): [Patient!]! @auth
     searchPatientsByName(searchTerm: String!, page: Int, limit: Int): [Patient!]! @auth 
+    searchCombined(
+      lastName: String
+      lastName2: String
+      firstName: String
+      page: Int = 1
+      limit: Int = 20
+    ): [Patient!]! @auth
   }
 
   extend type Mutation {

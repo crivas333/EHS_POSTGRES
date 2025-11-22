@@ -1,4 +1,5 @@
 
+// src/components/patient/patientSearch/AsyncPaginate_PatientSearch.jsx
 import React, {
   useState,
   forwardRef,
@@ -7,38 +8,39 @@ import React, {
   useMemo,
 } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
-import debounce from "lodash.debounce";
+import { useDebounce } from "use-debounce"; // ← ¡La magia!
 
 import { myclient } from "@/graphqlClient/myclient";
 import { SEARCH_PATIENT_BY_ID } from "@/features/patient/api/gqlQueries_patient";
 import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
+
 import "./asyncSelect.css";
 
-// ✅ Custom styles
+// Estilos personalizados
 const selectStyles = {
   menu: (base) => ({ ...base, zIndex: 100 }),
   input: (base) => ({ ...base, textTransform: "uppercase" }),
   singleValue: (base) => ({ ...base, textTransform: "uppercase" }),
 };
 
-// ✅ Label format for dropdown
+// Formato del dropdown
 const formatOptionLabel = ({ id, fullName, idTypeNo }) => (
   <span>{`${id} - ${fullName} (${idTypeNo})`}</span>
 );
 
-// ✅ Helper: Fetch full patient info by ID
+// Obtener paciente completo por ID
 async function getPatientById(id) {
   try {
     const res = await myclient.request(SEARCH_PATIENT_BY_ID, { id });
     return res?.patient ?? null;
   } catch (err) {
-    console.error("❌ getPatientById error:", err);
+    console.error("getPatientById error:", err);
     return null;
   }
 }
 
-const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch(
-  { onValChange }, // ✅ Local-only callback
+const AsyncPaginate_PatientSearch = forwardRef(function AsyncPaginate_PatientSearch(
+  { onValChange },
   ref
 ) {
   const { searchPatients } = usePatientSearch();
@@ -46,7 +48,10 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
   const [selectedValue, setSelectedValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
-  // ✅ Expose method for clearing selection
+  // Debounce del input (400ms)
+  const [debouncedInput] = useDebounce(inputValue, 400);
+
+  // Exponer método para limpiar desde fuera
   useImperativeHandle(ref, () => ({
     clearSelect: () => {
       setSelectedValue(null);
@@ -54,20 +59,19 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
     },
   }));
 
-  // ✅ Fetch paginated options
-  const fetchOptions = useCallback(
-    async (inputValue, loadedOptions, additional) => {
-      const trimmed = inputValue.trim().toUpperCase();
-      if (trimmed.length < 2) {
+  // Cargar opciones usando el valor debounced
+  const loadOptions = useCallback(
+    async (searchQuery, loadedOptions, { page = 1 }) => {
+      const term = (debouncedInput || searchQuery).trim().toUpperCase();
+
+      if (term.length < 2) {
         return {
           options: [],
           hasMore: false,
-          additional: { page: 0 },
         };
       }
 
-      const page = additional?.page ?? 1;
-      const results = await searchPatients(trimmed, page);
+      const results = await searchPatients(term, page);
 
       const options = results.map((p) => ({
         id: p.id,
@@ -76,41 +80,30 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
       }));
 
       const hasMore = results.length === 20;
+
       return {
         options,
         hasMore,
-        additional: { page: hasMore ? page + 1 : page },
+        additional: {
+          page: hasMore ? page + 1 : page,
+        },
       };
     },
-    [searchPatients]
+    [debouncedInput, searchPatients]
   );
 
-  // ✅ Debounce fetch
-  const debouncedFetchOptions = useMemo(() => {
-    const fn = debounce(
-      async (input, loaded, additional, resolve) => {
-        try {
-          const res = await fetchOptions(input, loaded, additional);
-          resolve(res);
-        } catch (err) {
-          console.error("❌ Debounced fetch error:", err);
-          resolve({ options: [], hasMore: false, additional: { page: 0 } });
-        }
-      },
-      400,
-      { leading: false, trailing: true }
-    );
+  // Memoizamos la función para que AsyncPaginate la use correctamente
+  const memoizedLoadOptions = useMemo(
+    () => loadOptions,
+    [loadOptions]
+  );
 
-    return (input, loaded, additional) =>
-      new Promise((resolve) => fn(input, loaded, additional, resolve));
-  }, [fetchOptions]);
-
-  // ✅ Handle user selection
+  // Al seleccionar
   const handleChange = async (option) => {
     if (option) {
       const patient = await getPatientById(option.id);
       if (patient && typeof onValChange === "function") {
-        onValChange(patient); // ✅ Send patient to parent
+        onValChange(patient); // Enviamos el paciente completo al padre
       }
       setSelectedValue(option);
     } else {
@@ -119,20 +112,20 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
     }
   };
 
-  // ✅ Uppercase input typing
+  // Forzar mayúsculas al escribir
   const handleInputChange = (val, { action }) => {
     if (action === "input-change") {
       const upper = val.toUpperCase();
       setInputValue(upper);
       return upper;
     }
-    return "";
+    return val;
   };
 
   return (
     <AsyncPaginate
       styles={selectStyles}
-      loadOptions={debouncedFetchOptions}
+      loadOptions={memoizedLoadOptions}
       value={selectedValue}
       inputValue={inputValue}
       onInputChange={handleInputChange}
@@ -141,8 +134,9 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
       placeholder="Busque por nombre, apellido o número de identificación"
       isClearable
       cacheOptions
-      additional={{ page: 0 }}
+      additional={{ page: 1 }}
       defaultOptions={false}
+      debounceTimeout={400} // opcional: AsyncPaginate ya respeta el debounce interno
       noOptionsMessage={({ inputValue }) =>
         inputValue.length < 2
           ? "Escriba al menos 2 caracteres"
@@ -153,4 +147,3 @@ const AsyncPaginate_PatientSearch = forwardRef(function AsyncSelectPatientSearch
 });
 
 export default AsyncPaginate_PatientSearch;
-
