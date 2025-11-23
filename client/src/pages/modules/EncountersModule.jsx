@@ -1,29 +1,11 @@
+// src/pages/modules/EncountersModule.jsx - MOBILE RESPONSIVE
 import React from "react";
 import { Box, Typography, Alert } from "@mui/material";
-import { useSetActiveModule } from "@/state/zustand/ZustandStore";
-import { useEncountersStore } from "@/state/zustand/ZustandStore";
 import { EncounterTable } from "@/features/encounters/index_legacy";
 
-// Use React.memo to prevent unnecessary re-renders
 const MemoEncounterTable = React.memo(EncounterTable);
 
-function EncountersModule({ patientId }) {
-  const setActiveModule = useSetActiveModule();
-  const setSelectedEncounterId = useEncountersStore((s) => s.setSelectedEncounterId);
-  
-  const handleSelectEncounter = (encounter) => {
-    console.log('EncountersModule - Selected encounter:', encounter);
-    if (encounter && patientId) {
-      // Set the selected encounter in the store
-      setSelectedEncounterId(patientId, encounter.id);
-      console.log('EncountersModule - Set encounter ID:', encounter.id);
-      
-      // Return to overview after selection
-      setActiveModule('overview');
-      console.log('EncountersModule - Returning to overview');
-    }
-  };
-
+function EncountersModule({ patientId, onSelectEncounter, isMobile = false }) {
   if (!patientId) {
     return (
       <Alert severity="warning">
@@ -33,16 +15,24 @@ function EncountersModule({ patientId }) {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Select Encounter</Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Choose an encounter to begin clinical work. After selection, you'll return to the overview where all clinical tools will be available.
+    <Box sx={{ p: isMobile ? 0 : 1 }}>
+      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
+        Select Encounter
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, display: isMobile ? 'none' : 'block' }}>
+        Choose an encounter to begin clinical work.
       </Typography>
       
-      <MemoEncounterTable
-        patientId={patientId}
-        onSelectEncounter={handleSelectEncounter}
-      />
+      <Box sx={{ 
+        overflow: 'auto',
+        maxWidth: '100%'
+      }}>
+        <MemoEncounterTable
+          patientId={patientId}
+          onSelectEncounter={onSelectEncounter}
+          compact={isMobile}
+        />
+      </Box>
     </Box>
   );
 }
