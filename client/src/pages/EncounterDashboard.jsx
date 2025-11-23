@@ -1,9 +1,8 @@
-// src/pages/EncounterDashboard.jsx - CLEANED UP VERSION
+// src/pages/EncounterDashboard.jsx - DESKTOP SIMPLIFIED
 import React, { useState } from "react";
 import {
   Box,
   Typography,
-  IconButton,
   Stack,
   Chip,
   Drawer,
@@ -11,15 +10,15 @@ import {
   useMediaQuery,
   AppBar,
   Toolbar,
+  IconButton,
 } from "@mui/material";
-import { ArrowBack, Menu } from "@mui/icons-material";
+import { Menu } from "@mui/icons-material";
 
 import { usePatientStore } from "@/state/zustand/ZustandStore";
 import { useEncountersStore } from "@/state/zustand/ZustandStore";
 import { MODULE_CONFIG } from "@/features/encounters/config/moduleConfig";
 
 // Import module components
-import OverviewModule from "./modules/OverviewModule";
 import EncountersModule from "./modules/EncountersModule";
 import VisualAcuityModule from "./modules/VisualAcuityModule";
 import RefractionModule from "./modules/RefractionModule";
@@ -53,11 +52,12 @@ function EncounterDashboard() {
     if (encounter && patientId) {
       const { setSelectedEncounterId } = useEncountersStore.getState();
       setSelectedEncounterId(patientId, encounter.id);
-      setActiveModule('overview');
+      // After selecting encounter, stay in encounters module or go to first clinical tool
+      setActiveModule('visualAcuity'); // Or keep it on encounters if you prefer
     }
   };
 
-  // Render current module
+  // Render current module - REMOVED OVERVIEW
   const renderModule = () => {
     const requiresEncounter = ['visualAcuity', 'refraction', 'exams', 'notes', 'orders'].includes(activeModule);
     
@@ -70,26 +70,11 @@ function EncounterDashboard() {
           <Typography variant="body1" sx={{ mb: 3 }}>
             To access {MODULE_CONFIG[activeModule]?.title}, please select an encounter.
           </Typography>
-          <Button 
-            variant="contained" 
-            onClick={() => handleModuleClick('encounters')}
-            size={isMobile ? "small" : "medium"}
-          >
-            Select Encounter
-          </Button>
         </Box>
       );
     }
 
     switch (activeModule) {
-      case 'overview':
-        return (
-          <OverviewModule 
-            encounterId={selectedEncounterId} 
-            onModuleChange={handleModuleClick}
-            isMobile={isMobile}
-          />
-        );
       case 'encounters':
         return (
           <EncountersModule 
@@ -122,19 +107,19 @@ function EncounterDashboard() {
         );
       default:
         return (
-          <OverviewModule 
-            encounterId={selectedEncounterId} 
-            onModuleChange={handleModuleClick}
+          <EncountersModule 
+            patientId={patientId} 
+            onSelectEncounter={handleSelectEncounter}
             isMobile={isMobile}
           />
         );
     }
   };
 
-  // Sidebar content component - CLEANED UP
+  // Sidebar content component - SIMPLIFIED
   const sidebarContent = (
     <Box sx={{ p: isMobile ? 1 : 2, height: '100%', overflow: 'auto' }}>
-      <Typography variant="h6" gutterBottom sx={{ display: isMobile ? 'none' : 'block' }}>
+      <Typography variant="h6" gutterBottom>
         Clinical Tools
       </Typography>
       
@@ -143,14 +128,17 @@ function EncounterDashboard() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6">Menu</Typography>
           <IconButton onClick={() => setMobileSidebarOpen(false)} size="small">
-            <ArrowBack />
+            <Menu />
           </IconButton>
         </Box>
       )}
       
       <Stack spacing={1}>
         {Object.entries(MODULE_CONFIG).map(([key, module]) => {
-          const isDisabled = key !== 'overview' && key !== 'encounters' && !selectedEncounterId;
+          // Remove overview from available modules
+          if (key === 'overview') return null;
+          
+          const isDisabled = key !== 'encounters' && !selectedEncounterId;
           
           return (
             <Chip
@@ -187,11 +175,9 @@ function EncounterDashboard() {
     );
   }
 
-  const currentModuleConfig = MODULE_CONFIG[activeModule];
-
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Mobile App Bar - SIMPLIFIED */}
+      {/* Mobile App Bar Only */}
       {isMobile && (
         <AppBar position="static" color="default" elevation={1}>
           <Toolbar>
@@ -203,43 +189,22 @@ function EncounterDashboard() {
               <Menu />
             </IconButton>
             <Typography variant="h6" noWrap>
-              {currentModuleConfig.title}
+              {MODULE_CONFIG[activeModule]?.title}
             </Typography>
           </Toolbar>
         </AppBar>
       )}
-
-      {/* Desktop Header - REMOVED PATIENT INFO */}
-      {!isMobile && (
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton 
-              onClick={() => handleModuleClick('overview')} 
-              size="small"
-              disabled={activeModule === 'overview'}
-            >
-              <ArrowBack />
-            </IconButton>
-            
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6">
-                {currentModuleConfig.title}
-              </Typography>
-            </Box>
-            
-            <Chip 
-              label={currentModuleConfig.title} 
-              icon={<span>{currentModuleConfig.icon}</span>}
-              variant="outlined"
-            />
-          </Stack>
-        </Box>
-      )}
       
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar - ALWAYS VISIBLE */}
         {!isMobile && (
-          <Box sx={{ width: 250, borderRight: 1, borderColor: 'divider', overflow: 'auto' }}>
+          <Box sx={{ 
+            width: 250, 
+            borderRight: 1, 
+            borderColor: 'divider', 
+            overflow: 'auto',
+            backgroundColor: 'grey.50'
+          }}>
             {sidebarContent}
           </Box>
         )}
@@ -265,7 +230,7 @@ function EncounterDashboard() {
         {/* Main Content */}
         <Box sx={{ 
           flex: 1, 
-          p: isMobile ? 1 : 2, 
+          p: isMobile ? 1 : 3, 
           overflow: 'auto',
         }}>
           {renderModule()}
