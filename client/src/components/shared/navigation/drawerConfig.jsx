@@ -31,7 +31,7 @@ const drawerConfig = [
       // { to: "/Consulta2", label: "Consulta2", icon: <Biotech /> },
       // { to: "/Examenes", label: "Exámenes", icon: <Biotech /> },
       // { to: "/OldDashboard", label: "OldDashboard", icon: <Biotech /> },
-      { to: "/PatientDashboard", label: "Patient Dashboard", icon: <Biotech /> },
+      { to: "/EncounterDashboard", label: "Consulta", icon: <Biotech /> },
     ],
   },
   {

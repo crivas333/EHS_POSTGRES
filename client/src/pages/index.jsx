@@ -14,7 +14,7 @@ import SystemConfigView from "./SystemConfigView.jsx";
 
 import { useApplicationFields } from "@/features/systemConfig/hooks/useApplicationFields"; // ✅ new hook
 //import OldDashboard from "@/components/dashboard/db1";
-import PatientDashboardView from "./PatientDashboardView.jsx";
+import EncounterDashboard from "./EncounterDashboard.jsx";
 
 export default function Pages() {
 
@@ -32,7 +32,7 @@ export default function Pages() {
         <Route path="/Citas" element={<AppoitmentsView />} />
       
      
-        <Route path="/PatientDashboard" element={<PatientDashboardView />} />
+        <Route path="/EncounterDashboard" element={<EncounterDashboard />} />
         <Route path="/Config" element={<SystemConfigView />} />
         <Route path="/Informes" element={<ReportsView />} />
       </Routes>

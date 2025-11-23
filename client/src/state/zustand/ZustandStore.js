@@ -129,10 +129,42 @@ export const useEncountersStore = create((set, get) => ({
     })),
 }));
 
-/* ============================================================================
-   Encounter API Cache Store
-   ============================================================================ */
 
+
+/* ============================================================================
+   Encounter Dashboard Module Store
+   ============================================================================ */
+export const useEncounterDashboardStore = create((set, get) => ({
+  activeModule: 'overview',
+  moduleStates: {}, // Store state for each module
+  
+  //setActiveModule: (moduleName) => set({ activeModule: moduleName }),
+  setActiveModule: (moduleName) => {
+  console.log('Setting active module to:', moduleName);
+  set({ activeModule: moduleName });
+},
+  
+  setModuleState: (moduleName, state) => set((current) => ({
+    moduleStates: {
+      ...current.moduleStates,
+      [moduleName]: state
+    }
+  })),
+  
+  getModuleState: (moduleName) => get().moduleStates[moduleName],
+  
+  goBack: () => set({ activeModule: 'overview' }),
+}));
+
+// Export individual actions as named exports
+export const useActiveModule = () => 
+  useEncounterDashboardStore((state) => state.activeModule);
+
+export const useSetActiveModule = () => 
+  useEncounterDashboardStore((state) => state.setActiveModule);
+
+export const useGoBack = () => 
+  useEncounterDashboardStore((state) => state.goBack);
 
 // Debug Hook
 if (typeof window !== "undefined") {
