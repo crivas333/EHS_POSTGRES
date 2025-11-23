@@ -1,58 +1,44 @@
-// src/pages/modules/OverviewModule.jsx - MOBILE RESPONSIVE
+// src/pages/modules/OverviewModule.jsx - CLEANED UP
 import React from "react";
-import { Box, Typography, Stack, Chip, Button, Alert, Card, CardContent } from "@mui/material";
+import { Box, Typography, Stack, Chip, Alert, Card, CardContent } from "@mui/material";
 
 function OverviewModule({ encounterId, onModuleChange, isMobile = false }) {
   return (
     <Box sx={{ p: isMobile ? 0 : 1 }}>
       <Typography variant={isMobile ? "h5" : "h4"} gutterBottom sx={{ mb: 2 }}>
-        Patient Overview
+        Clinical Workspace
       </Typography>
       
       {/* Current Status Card */}
       <Card sx={{ mb: 2 }}>
         <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-          <Typography variant="h6" gutterBottom>Clinical Workspace Status</Typography>
+          <Typography variant="h6" gutterBottom>Status</Typography>
           {!encounterId ? (
-            <Alert severity="info" icon={false} sx={{ mb: 2 }}>
+            <Alert severity="info" icon={false}>
               <Typography variant="body1" gutterBottom>
-                🚫 No Encounter Selected
+                Select an encounter to begin clinical work
               </Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>
-                Most clinical tools require an encounter to be selected first.
-              </Typography>
-              <Button 
-                variant="contained" 
-                onClick={() => onModuleChange('encounters')}
-                size={isMobile ? "small" : "medium"}
-                fullWidth={isMobile}
-              >
-                Select Encounter
-              </Button>
             </Alert>
           ) : (
             <Alert severity="success" icon={false}>
-              <Typography variant="body1" gutterBottom>
-                ✅ Encounter Ready
-              </Typography>
-              <Typography variant="body2">
-                All clinical tools are now available.
+              <Typography variant="body1">
+                Encounter ready - All tools available
               </Typography>
             </Alert>
           )}
         </CardContent>
       </Card>
 
-      <Typography variant="h6" gutterBottom>Quick Actions</Typography>
+      <Typography variant="h6" gutterBottom>Clinical Tools</Typography>
       <Stack 
         direction={isMobile ? "column" : "row"} 
         spacing={1} 
-        sx={{ mt: 1, mb: 3 }}
+        sx={{ mt: 1 }}
         flexWrap="wrap" 
         gap={1}
       >
         <Chip 
-          label="📋 Select Encounter" 
+          label="📋 Encounters" 
           onClick={() => onModuleChange('encounters')}
           variant={!encounterId ? "filled" : "outlined"}
           color={!encounterId ? "primary" : "default"}
@@ -73,7 +59,7 @@ function OverviewModule({ encounterId, onModuleChange, isMobile = false }) {
           size={isMobile ? "small" : "medium"}
         />
         <Chip 
-          label="🩺 Conduct Exams" 
+          label="🩺 Exams" 
           onClick={() => onModuleChange('exams')}
           variant="outlined"
           disabled={!encounterId}

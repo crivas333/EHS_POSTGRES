@@ -1,4 +1,4 @@
-// src/pages/EncounterDashboard.jsx - FIXED VERSION
+// src/pages/EncounterDashboard.jsx - CLEANED UP VERSION
 import React, { useState } from "react";
 import {
   Box,
@@ -6,8 +6,6 @@ import {
   IconButton,
   Stack,
   Chip,
-  Breadcrumbs,
-  Button,
   Drawer,
   useTheme,
   useMediaQuery,
@@ -133,7 +131,7 @@ function EncounterDashboard() {
     }
   };
 
-  // Sidebar content component - FIXED: Use handleModuleClick directly
+  // Sidebar content component - CLEANED UP
   const sidebarContent = (
     <Box sx={{ p: isMobile ? 1 : 2, height: '100%', overflow: 'auto' }}>
       <Typography variant="h6" gutterBottom sx={{ display: isMobile ? 'none' : 'block' }}>
@@ -159,7 +157,7 @@ function EncounterDashboard() {
               key={key}
               label={module.title}
               icon={<span>{module.icon}</span>}
-              onClick={() => handleModuleClick(key)} // FIXED: Use handleModuleClick directly
+              onClick={() => handleModuleClick(key)}
               color={activeModule === key ? "primary" : "default"}
               variant={activeModule === key ? "filled" : "outlined"}
               disabled={isDisabled}
@@ -176,39 +174,6 @@ function EncounterDashboard() {
           );
         })}
       </Stack>
-
-      {/* Debug buttons - FIXED: Use handleModuleClick directly */}
-      <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="subtitle2" gutterBottom>Quick Access:</Typography>
-        <Stack spacing={1}>
-          <Button 
-            variant="outlined" 
-            size="small"
-            onClick={() => handleModuleClick('encounters')} // FIXED
-            fullWidth
-          >
-            Encounters
-          </Button>
-          <Button 
-            variant="outlined" 
-            size="small"
-            onClick={() => handleModuleClick('visualAcuity')} // FIXED
-            disabled={!selectedEncounterId}
-            fullWidth
-          >
-            Visual Acuity
-          </Button>
-          <Button 
-            variant="outlined" 
-            size="small"
-            onClick={() => handleModuleClick('refraction')} // FIXED
-            disabled={!selectedEncounterId}
-            fullWidth
-          >
-            Refraction
-          </Button>
-        </Stack>
-      </Box>
     </Box>
   );
 
@@ -226,7 +191,7 @@ function EncounterDashboard() {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Mobile App Bar */}
+      {/* Mobile App Bar - SIMPLIFIED */}
       {isMobile && (
         <AppBar position="static" color="default" elevation={1}>
           <Toolbar>
@@ -237,19 +202,14 @@ function EncounterDashboard() {
             >
               <Menu />
             </IconButton>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" noWrap>
-                {currentPatient.firstName} {currentPatient.lastName}
-              </Typography>
-              <Typography variant="caption" noWrap>
-                {currentModuleConfig.title}
-              </Typography>
-            </Box>
+            <Typography variant="h6" noWrap>
+              {currentModuleConfig.title}
+            </Typography>
           </Toolbar>
         </AppBar>
       )}
 
-      {/* Desktop Header */}
+      {/* Desktop Header - REMOVED PATIENT INFO */}
       {!isMobile && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -263,10 +223,7 @@ function EncounterDashboard() {
             
             <Box sx={{ flex: 1 }}>
               <Typography variant="h6">
-                {currentPatient.firstName} {currentPatient.lastName}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                DOB: {currentPatient.dateOfBirth} • MRN: {currentPatient.mrn}
+                {currentModuleConfig.title}
               </Typography>
             </Box>
             
@@ -276,11 +233,6 @@ function EncounterDashboard() {
               variant="outlined"
             />
           </Stack>
-          
-          <Breadcrumbs sx={{ mt: 1 }}>
-            <Chip label="Patient Chart" size="small" variant="outlined" />
-            <Chip label={currentModuleConfig.title} size="small" variant="filled" />
-          </Breadcrumbs>
         </Box>
       )}
       
@@ -315,7 +267,6 @@ function EncounterDashboard() {
           flex: 1, 
           p: isMobile ? 1 : 2, 
           overflow: 'auto',
-          backgroundColor: isMobile ? '#f5f5f5' : 'transparent'
         }}>
           {renderModule()}
         </Box>
