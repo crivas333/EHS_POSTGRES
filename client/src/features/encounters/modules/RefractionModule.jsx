@@ -1,7 +1,7 @@
 // src/pages/modules/RefractionModule.jsx - MOBILE RESPONSIVE
 import React from "react";
 import { Box, Typography, Stack } from "@mui/material";
-import { ManifestRefraction, Refraction } from "@/features/encounters/index_legacy";
+import { ManifestRefraction, Refraction } from "@/features/encounters";
 
 const MemoManifestRefraction = React.memo(ManifestRefraction);
 const MemoRefraction = React.memo(Refraction);

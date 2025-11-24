@@ -1,7 +1,7 @@
 // src/pages/modules/VisualAcuityModule.jsx - MOBILE RESPONSIVE
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import { EncountersVATable } from "@/features/encounters/index_legacy";
+import { EncountersVATable } from "@/features/encounters";
 
 const MemoEncountersVATable = React.memo(EncountersVATable);
 

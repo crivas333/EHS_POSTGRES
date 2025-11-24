@@ -1,35 +1,30 @@
 import React from "react";
-//import format from "date-fns/format";
-//import EditIcon from "@material-ui/icons/Edit";
-//import DeleteIcon from "@material-ui/icons/Delete";
 import {
-  useTable,
-  useFilters,
-  useGlobalFilter,
-  useAsyncDebounce,
-} from "react-table";
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFacetedMinMaxValues,
+  flexRender,
+} from "@tanstack/react-table";
+import { useDebounce } from "use-debounce";
 
-// This is a custom filter UI for selecting
-// a unique option from a list
-function SelectColumnFilter({
-  column: { filterValue, setFilter, preFilteredRows, id },
-}) {
-  // Calculate the options for filtering
-  // using the preFilteredRows
+// This is a custom filter UI for selecting a unique option from a list
+function SelectColumnFilter({ column }) {
+  const { getFilterValue, setFilterValue, getFacetedUniqueValues } = column;
+  const facetedValues = getFacetedUniqueValues();
+  const filterValue = getFilterValue();
+
   const options = React.useMemo(() => {
-    const options = new Set();
-    preFilteredRows.forEach((row) => {
-      options.add(row.values[id]);
-    });
-    return [...options.values()];
-  }, [id, preFilteredRows]);
+    return Array.from(facetedValues.keys());
+  }, [facetedValues]);
 
-  // Render a multi-select box
   return (
     <select
-      value={filterValue}
+      value={filterValue || ""}
       onChange={(e) => {
-        setFilter(e.target.value || undefined);
+        setFilterValue(e.target.value || undefined);
       }}
     >
       <option value="">All</option>
@@ -41,33 +36,32 @@ function SelectColumnFilter({
     </select>
   );
 }
+
 // Define a default UI for filtering
-function DefaultColumnFilter({
-  column: { filterValue, preFilteredRows, setFilter },
-}) {
-  const count = preFilteredRows.length;
+function DefaultColumnFilter({ column }) {
+  const { getFilterValue, setFilterValue, getFacetedUniqueValues } = column;
+  const facetedValues = getFacetedUniqueValues();
+  const count = facetedValues.size;
+  const filterValue = getFilterValue();
 
   return (
     <input
       value={filterValue || ""}
       onChange={(e) => {
-        setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
+        setFilterValue(e.target.value || undefined);
       }}
       placeholder={`Search ${count} records...`}
     />
   );
 }
 
-function GlobalFilter({
-  preGlobalFilteredRows,
-  globalFilter,
-  setGlobalFilter,
-}) {
-  const count = preGlobalFilteredRows.length;
-  const [value, setValue] = React.useState(globalFilter);
-  const onChange = useAsyncDebounce((value) => {
-    setGlobalFilter(value || undefined);
-  }, 200);
+function GlobalFilter({ table }) {
+  const [value, setValue] = React.useState(table.getState().globalFilter || '');
+  const [debouncedValue] = useDebounce(value, 200);
+
+  React.useEffect(() => {
+    table.setGlobalFilter(debouncedValue);
+  }, [debouncedValue, table]);
 
   return (
     <span>
@@ -76,9 +70,8 @@ function GlobalFilter({
         value={value || ""}
         onChange={(e) => {
           setValue(e.target.value);
-          onChange(e.target.value);
         }}
-        placeholder={`${count} records...`}
+        placeholder={`${table.getPreFilteredRowModel().rows.length} records...`}
         style={{
           fontSize: "1.1rem",
           border: "0",
@@ -89,109 +82,85 @@ function GlobalFilter({
 }
 
 export default function Table({ columns, data }) {
-  const filterTypes = React.useMemo(
-    () => ({
-      // Add a new fuzzyTextFilterFn filter type.
-      //fuzzyText: fuzzyTextFilterFn,
-      // Or, override the default text filter to use
-      // "startWith"
-      text: (rows, id, filterValue) => {
-        return rows.filter((row) => {
-          const rowValue = row.values[id];
-          return rowValue !== undefined
-            ? String(rowValue)
-                .toLowerCase()
-                .startsWith(String(filterValue).toLowerCase())
-            : true;
-        });
-      },
-    }),
-    []
-  );
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
-  const defaultColumn = React.useMemo(
-    () => ({
-      // Let's set up our default Filter UI
-      Filter: DefaultColumnFilter,
-    }),
-    []
-  );
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state,
-    visibleColumns,
-    preGlobalFilteredRows,
-    setGlobalFilter,
-  } = useTable(
-    {
-      columns,
-      data,
-      defaultColumn, // Be sure to pass the defaultColumn option
-      filterTypes,
+  const table = useReactTable({
+    data,
+    columns: React.useMemo(() => columns, [columns]),
+    state: {
+      globalFilter,
     },
-    useFilters, // useFilters!
-    useGlobalFilter // useGlobalFilter!
-  );
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
+  });
 
-  // We don't want to render all of the rows for this example, so cap
-  // it for this use case
-  const firstPageRows = rows.slice(0, 10);
+  const firstPageRows = table.getRowModel().rows.slice(0, 10);
 
   return (
     <>
-      <table {...getTableProps()}>
+      <table>
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>
-                  {column.render("Header")}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id} colSpan={header.colSpan}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   {/* Render the columns filter UI */}
-                  <div>{column.canFilter ? column.render("Filter") : null}</div>
+                  <div>
+                    {header.column.getCanFilter() ? (
+                      <div>
+                        {header.column.columnDef.Filter ? (
+                          flexRender(
+                            header.column.columnDef.Filter,
+                            { column: header.column }
+                          )
+                        ) : (
+                          <DefaultColumnFilter column={header.column} />
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 </th>
               ))}
             </tr>
           ))}
           <tr>
             <th
-              colSpan={visibleColumns.length}
+              colSpan={table.getVisibleLeafColumns().length}
               style={{
                 textAlign: "left",
               }}
             >
-              <GlobalFilter
-                preGlobalFilteredRows={preGlobalFilteredRows}
-                globalFilter={state.globalFilter}
-                setGlobalFilter={setGlobalFilter}
-              />
+              <GlobalFilter table={table} />
             </th>
           </tr>
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {firstPageRows.map((row, i) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => {
-                  return (
-                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                  );
-                })}
-              </tr>
-            );
-          })}
+        <tbody>
+          {firstPageRows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
       <br />
-      <div>Showing the first 20 results of {rows.length} rows</div>
+      <div>Showing the first 10 results of {table.getFilteredRowModel().rows.length} rows</div>
       <div>
         <pre>
-          <code>{JSON.stringify(state.filters, null, 2)}</code>
+          <code>{JSON.stringify(table.getState().columnFilters, null, 2)}</code>
         </pre>
       </div>
     </>

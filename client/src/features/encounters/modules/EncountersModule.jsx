@@ -1,7 +1,8 @@
 // src/pages/modules/EncountersModule.jsx - MOBILE RESPONSIVE
 import React from "react";
 import { Box, Typography, Alert } from "@mui/material";
-import { EncounterTable } from "@/features/encounters/index_legacy";
+//import { EncounterTable } from "@/features/encounters/index_legacy";
+import { EncounterTable } from "@/features/encounters";
 
 const MemoEncounterTable = React.memo(EncounterTable);
 
