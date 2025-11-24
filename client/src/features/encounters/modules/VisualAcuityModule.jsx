@@ -1,28 +1,29 @@
-// src/pages/modules/VisualAcuityModule.jsx - MOBILE RESPONSIVE
-import React from "react";
+
+import React, { useMemo } from "react";
 import { Box, Typography } from "@mui/material";
 import { EncountersVATable } from "@/features/encounters";
+import { SectionHeader } from "./SectionHeader";
 
-const MemoEncountersVATable = React.memo(EncountersVATable);
+const MemoVA = React.memo(EncountersVATable);
 
-function VisualAcuityModule({ encounterId, isMobile = false }) {
-  if (!encounterId) {
-    return <Typography>Please select an encounter first.</Typography>;
-  }
+export default function VisualAcuityModule({ encounterId, isMobile }) {
+
+  // ❗ Hooks always run
+  const tableProps = useMemo(
+    () => ({ encounterId, compact: isMobile }),
+    [encounterId, isMobile]
+  );
+
+  // ❗ Early return AFTER hooks
+  if (!encounterId) return <Typography>Please select an encounter first.</Typography>;
 
   return (
     <Box sx={{ p: isMobile ? 0 : 1 }}>
-      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
-        Visual Acuity
-      </Typography>
-      <Box sx={{ 
-        overflow: 'auto',
-        maxWidth: '100%'
-      }}>
-        <MemoEncountersVATable encounterId={encounterId} compact={isMobile} />
+      <SectionHeader title="Visual Acuity" isMobile={isMobile} />
+
+      <Box sx={{ overflow: "auto", maxWidth: "100%" }}>
+        <MemoVA {...tableProps} />
       </Box>
     </Box>
   );
 }
-
-export default VisualAcuityModule;

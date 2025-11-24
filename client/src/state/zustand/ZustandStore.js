@@ -1,5 +1,7 @@
+
 // src/zustand/index.js
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
 /* ============================================================
    AUTH STORE
@@ -44,108 +46,124 @@ export const useNotificationStore = create((set) => ({
 }));
 
 /* ============================================================
-   ENCOUNTERS STORE — PERSISTED UI STATE PER PATIENT
+   ENCOUNTERS STORE — PERFORMANCE OPTIMIZED
    ============================================================ */
-export const useEncountersStore = create((set, get) => ({
-  encountersByPatient: {},
 
-  /* Initialize per-patient UI state (only once) */
-  initPatientState: (patientId) =>
-    set((state) => {
-      if (!patientId) return state;
-      if (state.encountersByPatient[patientId]) return state;
+const INITIAL_PATIENT_STATE = {
+  selectedEncounterId: null,
 
-      return {
+  openSections: {
+    encounters: true,
+    visualAcuity: false,
+    refraction: false,
+  },
+
+  pagination: { page: 0, rowsPerPage: 10 },
+  sorting: { orderBy: "start", order: "desc" },
+};
+
+export const useEncountersStore = create(
+  subscribeWithSelector((set, get) => ({
+    encountersByPatient: {},
+
+    /* Initialize state once per patient */
+    initPatientState: (patientId) => {
+      if (!patientId) return;
+      const exists = get().encountersByPatient[patientId];
+      if (exists) return;
+
+      set((state) => ({
         encountersByPatient: {
           ...state.encountersByPatient,
-          [patientId]: {
-            selectedEncounterId: null,
+          [patientId]: { ...INITIAL_PATIENT_STATE },
+        },
+      }));
+    },
 
-            openSections: {
-              encounters: true,
-              visualAcuity: false,
-              refraction: false,
+    /* ===========================
+       GETTERS
+       =========================== */
+    getStateFor: (patientId) =>
+      get().encountersByPatient[patientId] ?? null,
+
+    getPagination: (patientId) =>
+      get().encountersByPatient[patientId]?.pagination,
+
+    getSorting: (patientId) =>
+      get().encountersByPatient[patientId]?.sorting,
+
+    /* ===========================
+       SETTERS — Optimized
+       =========================== */
+
+    setSelectedEncounterId: (patientId, selectedEncounterId) =>
+      set((state) => {
+        const patient = state.encountersByPatient[patientId];
+        if (!patient) return state;
+
+        return {
+          encountersByPatient: {
+            ...state.encountersByPatient,
+            [patientId]: {
+              ...patient,
+              selectedEncounterId,
             },
-
-            pagination: { page: 0, rowsPerPage: 10 },
-            sorting: { orderBy: "start", order: "desc" },
           },
-        },
-      };
-    }),
+        };
+      }),
 
-  /* Getters */
-  getStateFor: (patientId) => get().encountersByPatient[patientId] ?? null,
-  getPagination: (patientId) => get().encountersByPatient[patientId]?.pagination,
-  getSorting: (patientId) => get().encountersByPatient[patientId]?.sorting,
+    toggleSection: (patientId, key) =>
+      set((state) => {
+        const patient = state.encountersByPatient[patientId];
+        if (!patient) return state;
 
-  /* Setters */
-  setSelectedEncounterId: (patientId, selectedEncounterId) =>
-    set((state) => {
-      if (!state.encountersByPatient[patientId]) return state;
-
-      return {
-        encountersByPatient: {
-          ...state.encountersByPatient,
-          [patientId]: {
-            ...state.encountersByPatient[patientId],
-            selectedEncounterId,
+        return {
+          encountersByPatient: {
+            ...state.encountersByPatient,
+            [patientId]: {
+              ...patient,
+              openSections: {
+                ...patient.openSections,
+                [key]: !patient.openSections[key],
+              },
+            },
           },
-        },
-      };
-    }),
+        };
+      }),
 
-  toggleSection: (patientId, key) =>
-    set((state) => {
-      const patient = state.encountersByPatient[patientId];
-      if (!patient) return state;
+    setPagination: (patientId, pagination) =>
+      set((state) => {
+        const patient = state.encountersByPatient[patientId];
+        if (!patient) return state;
 
-      const newSections = {
-        ...patient.openSections,
-        [key]: !patient.openSections[key],
-      };
-
-      return {
-        encountersByPatient: {
-          ...state.encountersByPatient,
-          [patientId]: {
-            ...patient,
-            openSections: newSections,
+        return {
+          encountersByPatient: {
+            ...state.encountersByPatient,
+            [patientId]: {
+              ...patient,
+              pagination,
+            },
           },
-        },
-      };
-    }),
+        };
+      }),
 
-  setPagination: (patientId, pagination) =>
-    set((state) => {
-      if (!state.encountersByPatient[patientId]) return state;
+    setSorting: (patientId, sorting) =>
+      set((state) => {
+        const patient = state.encountersByPatient[patientId];
+        if (!patient) return state;
 
-      return {
-        encountersByPatient: {
-          ...state.encountersByPatient,
-          [patientId]: {
-            ...state.encountersByPatient[patientId],
-            pagination,
+        return {
+          encountersByPatient: {
+            ...state.encountersByPatient,
+            [patientId]: {
+              ...patient,
+              sorting,
+            },
           },
-        },
-      };
-    }),
-
-  setSorting: (patientId, sorting) =>
-    set((state) => {
-      if (!state.encountersByPatient[patientId]) return state;
-
-      return {
-        encountersByPatient: {
-          ...state.encountersByPatient,
-          [patientId]: {
-            ...state.encountersByPatient[patientId],
-            sorting,
-          },
-        },
-      };
-    }),
-}));
+        };
+      }),
+  }))
+);
 
 /* ============================================================
    ENCOUNTER DASHBOARD STORE — ACTIVE MODULE + MODULE STATE
@@ -186,7 +204,4 @@ export const useGoBack = () =>
 if (typeof window !== "undefined") {
   window.useEncountersStore = useEncountersStore;
 }
-
-
-
 

@@ -1,11 +1,11 @@
+
 // src/features/encounters/dashboard/EncounterDashboard.jsx
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useTheme, useMediaQuery } from "@mui/material";
-import { shallow } from "zustand/shallow";
 
 import { usePatientStore } from "@/state/zustand/ZustandStore";
-import { useEncountersStore } from "@/state/zustand/ZustandStore";
+import { useEncountersStore, useEncounterDashboardStore } from "@/state/zustand/ZustandStore";
 
 import EncounterLayout from "@/features/encounters/layout/EncounterLayout";
 import EncountersModule from "@/features/encounters/modules/EncountersModule";
@@ -19,46 +19,68 @@ const MODULES = {
 };
 
 function EncounterDashboard() {
-  const [activeModule, setActiveModule] = useState("encounters");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // -----------------------------------------
+  // PATIENT CONTEXT
+  // -----------------------------------------
   const currentPatient = usePatientStore((s) => s.currentPatient);
   const patientId = currentPatient?.id;
 
+  // Initialize encounter state for patient
+  useEffect(() => {
+    if (patientId) {
+      useEncountersStore.getState().initPatientState(patientId);
+    }
+  }, [patientId]);
+
+  // -----------------------------------------
+  // DASHBOARD STORE (ACTIVE MODULE + SIDEBAR)
+  // -----------------------------------------
+  const activeModule = useEncounterDashboardStore((s) => s.activeModule);
+  const mobileSidebarOpen = useEncounterDashboardStore((s) => s.mobileSidebarOpen);
+
+  const setActiveModule = useEncounterDashboardStore((s) => s.setActiveModule);
+  const setMobileSidebarOpen = useEncounterDashboardStore((s) => s.setMobileSidebarOpen);
+
+  // -----------------------------------------
+  // SELECTED ENCOUNTER (Minimal Selector)
+  // -----------------------------------------
   const selectedEncounterId = useEncountersStore(
-    (s) => s.encountersByPatient[patientId]?.selectedEncounterId ?? null,
-    shallow
+    (s) => s.getStateFor(patientId)?.selectedEncounterId,
   );
 
   // -----------------------------------------
-  // Memoized callbacks
+  // CALLBACKS
   // -----------------------------------------
   const handleModuleClick = useCallback(
     (moduleKey) => {
       setActiveModule(moduleKey);
       if (isMobile) setMobileSidebarOpen(false);
     },
-    [isMobile]
+    [isMobile, setActiveModule, setMobileSidebarOpen]
   );
 
   const handleSelectEncounter = useCallback(
     (encounter) => {
       if (!encounter || !patientId) return;
-      const { setSelectedEncounterId } = useEncountersStore.getState();
-      setSelectedEncounterId(patientId, encounter.id);
+
+      // Avoid stale closures - direct state call
+      useEncountersStore.getState().setSelectedEncounterId(patientId, encounter.id);
+
       setActiveModule("visualAcuity");
     },
-    [patientId]
+    [patientId, setActiveModule]
   );
 
   // -----------------------------------------
-  // Memoized Module Renderer
+  // MODULE RENDERING
   // -----------------------------------------
   const moduleContent = useMemo(() => {
-    const requiresEncounter = ["visualAcuity", "refraction", "exams", "notes", "orders"].includes(activeModule);
+    const requiresEncounter = ["visualAcuity", "refraction", "exams", "notes", "orders"].includes(
+      activeModule
+    );
 
     if (requiresEncounter && !selectedEncounterId) {
       return (
@@ -78,7 +100,6 @@ function EncounterDashboard() {
       );
     }
 
-    // Use dictionary-based rendering
     const ModuleComponent = MODULES[activeModule];
 
     if (ModuleComponent) {
@@ -92,7 +113,6 @@ function EncounterDashboard() {
       );
     }
 
-    // Fallbacks for coming-soon modules
     return (
       <Box sx={{ p: isMobile ? 1 : 2 }}>
         <Typography variant={isMobile ? "h5" : "h4"}>
@@ -110,7 +130,7 @@ function EncounterDashboard() {
   ]);
 
   // -----------------------------------------
-  // No Patient Selected
+  // NO PATIENT SELECTED
   // -----------------------------------------
   if (!currentPatient) {
     return (
@@ -122,6 +142,9 @@ function EncounterDashboard() {
     );
   }
 
+  // -----------------------------------------
+  // FINAL RENDER
+  // -----------------------------------------
   return (
     <EncounterLayout
       activeModule={activeModule}

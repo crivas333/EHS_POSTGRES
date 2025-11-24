@@ -1,41 +1,37 @@
-// src/pages/modules/EncountersModule.jsx - MOBILE RESPONSIVE
-import React from "react";
+
+import React, { useMemo } from "react";
 import { Box, Typography, Alert } from "@mui/material";
-//import { EncounterTable } from "@/features/encounters/index_legacy";
 import { EncounterTable } from "@/features/encounters";
+import { SectionHeader } from "./SectionHeader";
 
-const MemoEncounterTable = React.memo(EncounterTable);
+const MemoTable = React.memo(EncounterTable);
 
-function EncountersModule({ patientId, onSelectEncounter, isMobile = false }) {
+export default function EncountersModule({ patientId, onSelectEncounter, isMobile }) {
+
+  // ❗ Always run hooks unconditionally
+  const tableProps = useMemo(
+    () => ({ patientId, onSelectEncounter, compact: isMobile }),
+    [patientId, onSelectEncounter, isMobile]
+  );
+
+  // ❗ Now we can return early AFTER hooks
   if (!patientId) {
-    return (
-      <Alert severity="warning">
-        No patient selected. Please select a patient first.
-      </Alert>
-    );
+    return <Alert severity="warning">No patient selected. Please select a patient first.</Alert>;
   }
 
   return (
     <Box sx={{ p: isMobile ? 0 : 1 }}>
-      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
-        Select Encounter
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, display: isMobile ? 'none' : 'block' }}>
-        Choose an encounter to begin clinical work.
-      </Typography>
-      
-      <Box sx={{ 
-        overflow: 'auto',
-        maxWidth: '100%'
-      }}>
-        <MemoEncounterTable
-          patientId={patientId}
-          onSelectEncounter={onSelectEncounter}
-          compact={isMobile}
-        />
+      <SectionHeader title="Select Encounter" isMobile={isMobile} />
+
+      {!isMobile && (
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Choose an encounter to begin clinical work.
+        </Typography>
+      )}
+
+      <Box sx={{ overflow: "auto", maxWidth: "100%" }}>
+        <MemoTable {...tableProps} />
       </Box>
     </Box>
   );
 }
-
-export default EncountersModule;
