@@ -1,63 +1,71 @@
 
-// src/zustand/index.js
+// src/zustand/ZustandStore.js
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 /* ============================================================
    AUTH STORE
    ============================================================ */
-export const useAuthStore = create((set) => ({
-  isAuth: false,
-  currentUser: null,
+export const useAuthStore = create(
+  subscribeWithSelector((set) => ({
+    isAuth: false,
+    currentUser: null,
 
-  setIsAuth: (isAuth) => set({ isAuth }),
-  setCurrentUser: (currentUser) => set({ currentUser }),
-}));
+    setIsAuth: (isAuth) => set({ isAuth }),
+    setCurrentUser: (currentUser) => set({ currentUser }),
+  }))
+);
 
 /* ============================================================
    PATIENT STORE
    ============================================================ */
-export const usePatientStore = create((set) => ({
-  currentPatient: null,
-  setCurrentPatient: (currentPatient) => set({ currentPatient }),
-}));
+export const usePatientStore = create(
+  subscribeWithSelector((set) => ({
+    currentPatient: null,
+    setCurrentPatient: (currentPatient) => set({ currentPatient }),
+  }))
+);
 
 /* ============================================================
    SEARCH STORE
    ============================================================ */
-export const useSearchStore = create((set) => ({
-  searchDate: new Date(),
-  setSearchDate: (searchDate) => set({ searchDate }),
-}));
+export const useSearchStore = create(
+  subscribeWithSelector((set) => ({
+    searchDate: new Date(),
+    setSearchDate: (searchDate) => set({ searchDate }),
+  }))
+);
 
 /* ============================================================
    NOTIFICATION STORE
    ============================================================ */
-export const useNotificationStore = create((set) => ({
-  notification: { open: false, message: "", status: "info" },
+export const useNotificationStore = create(
+  subscribeWithSelector((set) => ({
+    notification: { open: false, message: "", status: "info" },
 
-  show: (message, status = "info") =>
-    set({ notification: { open: true, message, status } }),
+    show: (message, status = "info") =>
+      set({
+        notification: { open: true, message, status },
+      }),
 
-  hide: () =>
-    set((state) => ({
-      notification: { ...state.notification, open: false },
-    })),
-}));
+    hide: () =>
+      set((state) => ({
+        notification: { ...state.notification, open: false },
+      })),
+  }))
+);
 
 /* ============================================================
-   ENCOUNTERS STORE — PERFORMANCE OPTIMIZED
+   ENCOUNTERS STORE — ULTRA-OPTIMIZED
    ============================================================ */
 
-const INITIAL_PATIENT_STATE = {
+const DEFAULT_ENCOUNTER_STATE = {
   selectedEncounterId: null,
-
   openSections: {
     encounters: true,
     visualAcuity: false,
     refraction: false,
   },
-
   pagination: { page: 0, rowsPerPage: 10 },
   sorting: { orderBy: "start", order: "desc" },
 };
@@ -66,7 +74,6 @@ export const useEncountersStore = create(
   subscribeWithSelector((set, get) => ({
     encountersByPatient: {},
 
-    /* Initialize state once per patient */
     initPatientState: (patientId) => {
       if (!patientId) return;
       const exists = get().encountersByPatient[patientId];
@@ -75,41 +82,29 @@ export const useEncountersStore = create(
       set((state) => ({
         encountersByPatient: {
           ...state.encountersByPatient,
-          [patientId]: { ...INITIAL_PATIENT_STATE },
+          // 🔥 FIX: structuredClone removed
+          [patientId]: JSON.parse(JSON.stringify(DEFAULT_ENCOUNTER_STATE)),
         },
       }));
     },
 
-    /* ===========================
-       GETTERS
-       =========================== */
-    getStateFor: (patientId) =>
-      get().encountersByPatient[patientId] ?? null,
-
+    /* Getters */
+    getStateFor: (patientId) => get().encountersByPatient[patientId] || null,
     getPagination: (patientId) =>
       get().encountersByPatient[patientId]?.pagination,
-
     getSorting: (patientId) =>
       get().encountersByPatient[patientId]?.sorting,
+    getOpenSections: (patientId) =>
+      get().encountersByPatient[patientId]?.openSections,
 
-    /* ===========================
-       SETTERS — Optimized
-       =========================== */
-
-    setSelectedEncounterId: (patientId, selectedEncounterId) =>
+    /* Setters */
+    setSelectedEncounterId: (patientId, value) =>
       set((state) => {
         const patient = state.encountersByPatient[patientId];
         if (!patient) return state;
 
-        return {
-          encountersByPatient: {
-            ...state.encountersByPatient,
-            [patientId]: {
-              ...patient,
-              selectedEncounterId,
-            },
-          },
-        };
+        patient.selectedEncounterId = value;
+        return { encountersByPatient: state.encountersByPatient };
       }),
 
     toggleSection: (patientId, key) =>
@@ -117,18 +112,8 @@ export const useEncountersStore = create(
         const patient = state.encountersByPatient[patientId];
         if (!patient) return state;
 
-        return {
-          encountersByPatient: {
-            ...state.encountersByPatient,
-            [patientId]: {
-              ...patient,
-              openSections: {
-                ...patient.openSections,
-                [key]: !patient.openSections[key],
-              },
-            },
-          },
-        };
+        patient.openSections[key] = !patient.openSections[key];
+        return { encountersByPatient: state.encountersByPatient };
       }),
 
     setPagination: (patientId, pagination) =>
@@ -136,15 +121,8 @@ export const useEncountersStore = create(
         const patient = state.encountersByPatient[patientId];
         if (!patient) return state;
 
-        return {
-          encountersByPatient: {
-            ...state.encountersByPatient,
-            [patientId]: {
-              ...patient,
-              pagination,
-            },
-          },
-        };
+        patient.pagination = pagination;
+        return { encountersByPatient: state.encountersByPatient };
       }),
 
     setSorting: (patientId, sorting) =>
@@ -152,56 +130,54 @@ export const useEncountersStore = create(
         const patient = state.encountersByPatient[patientId];
         if (!patient) return state;
 
-        return {
-          encountersByPatient: {
-            ...state.encountersByPatient,
-            [patientId]: {
-              ...patient,
-              sorting,
-            },
-          },
-        };
+        patient.sorting = sorting;
+        return { encountersByPatient: state.encountersByPatient };
       }),
   }))
 );
 
 /* ============================================================
-   ENCOUNTER DASHBOARD STORE — ACTIVE MODULE + MODULE STATE
+   ENCOUNTER DASHBOARD STORE
    ============================================================ */
-export const useEncounterDashboardStore = create((set, get) => ({
-  activeModule: "encounters",
-  moduleStates: {},
+export const useEncounterDashboardStore = create(
+  subscribeWithSelector((set, get) => ({
+    activeModule: "encounters",
+    moduleStates: {},
 
-  setActiveModule: (moduleName) => {
-    console.log("Setting active module:", moduleName);
-    set({ activeModule: moduleName });
-  },
+    setActiveModule: (moduleName) => {
+      console.log("Setting active module:", moduleName);
+      set({ activeModule: moduleName });
+    },
 
-  setModuleState: (moduleName, state) =>
-    set((current) => ({
-      moduleStates: {
-        ...current.moduleStates,
-        [moduleName]: state,
-      },
-    })),
+    setModuleState: (moduleName, state) =>
+      set((current) => ({
+        moduleStates: {
+          ...current.moduleStates,
+          [moduleName]: state,
+        },
+      })),
 
-  getModuleState: (moduleName) => get().moduleStates[moduleName],
+    getModuleState: (moduleName) => get().moduleStates[moduleName],
 
-  goBack: () => set({ activeModule: "encounters" }),
-}));
+    goBack: () => set({ activeModule: "encounters" }),
+  }))
+);
 
-/* Convenience hooks */
+/* ============================================================
+   Convenience Hooks
+   ============================================================ */
 export const useActiveModule = () =>
-  useEncounterDashboardStore((state) => state.activeModule);
+  useEncounterDashboardStore((s) => s.activeModule);
 
 export const useSetActiveModule = () =>
-  useEncounterDashboardStore((state) => state.setActiveModule);
+  useEncounterDashboardStore((s) => s.setActiveModule);
 
 export const useGoBack = () =>
-  useEncounterDashboardStore((state) => state.goBack);
+  useEncounterDashboardStore((s) => s.goBack);
 
-/* Debug */
+/* ============================================================
+   Debug Helper
+   ============================================================ */
 if (typeof window !== "undefined") {
   window.useEncountersStore = useEncountersStore;
 }
-
