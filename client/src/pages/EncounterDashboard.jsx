@@ -19,9 +19,9 @@ import { useEncountersStore } from "@/state/zustand/ZustandStore";
 import { MODULE_CONFIG } from "@/features/encounters/config/moduleConfig";
 
 // Import module components
-import EncountersModule from "./modules/EncountersModule";
-import VisualAcuityModule from "./modules/VisualAcuityModule";
-import RefractionModule from "./modules/RefractionModule";
+import EncountersModule from "@/features/encounters/modules/EncountersModule";
+import VisualAcuityModule from "@/features/encounters/modules/VisualAcuityModule";
+import RefractionModule from "@/features/encounters/modules/RefractionModule";
 
 function EncounterDashboard() {
   const [activeModule, setActiveModule] = useState('encounters');

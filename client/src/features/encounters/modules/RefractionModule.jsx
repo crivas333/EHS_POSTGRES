@@ -17,12 +17,7 @@ function RefractionModule({ encounterId, isMobile = false }) {
         Refraction
       </Typography>
       <Stack spacing={isMobile ? 2 : 3}>
-        <Box sx={{ 
-          overflow: 'auto',
-          maxWidth: '100%'
-        }}>
-          <MemoRefraction encounterId={encounterId} compact={isMobile} />
-        </Box>
+       
         <Box sx={{ 
           overflow: 'auto',
           maxWidth: '100%'
