@@ -6,72 +6,77 @@ import {
   Stack,
   Chip,
   Drawer,
-  useTheme,
-  useMediaQuery,
   AppBar,
   Toolbar,
   IconButton,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Menu } from "@mui/icons-material";
 
-function EncounterLayout({ 
-  activeModule, 
-  onModuleClick, 
-  selectedEncounterId, 
-  isMobile, 
-  mobileSidebarOpen, 
+const MODULES = [
+  { key: "encounters", title: "Encounters", icon: "📋" },
+  { key: "visualAcuity", title: "Visual Acuity", icon: "👁️" },
+  { key: "refraction", title: "Refraction", icon: "🔍" },
+  { key: "exams", title: "Exams", icon: "🩺" },
+  { key: "notes", title: "Clinical Notes", icon: "📝" },
+  { key: "orders", title: "Orders", icon: "💊" },
+];
+
+export default function EncounterLayout({
+  activeModule,
+  onModuleClick,
+  selectedEncounterId,
+  mobileSidebarOpen,
   setMobileSidebarOpen,
-  children 
+  children,
 }) {
   const theme = useTheme();
-  // Remove unused 'mobile' variable - using 'isMobile' from props instead
-  useMediaQuery(theme.breakpoints.down('md')); // This line can be removed entirely
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // Sidebar content component
   const sidebarContent = (
-    <Box sx={{ p: isMobile ? 1 : 2, height: '100%', overflow: 'auto' }}>
+    <Box sx={{ p: isMobile ? 1 : 2, height: "100%", overflow: "auto" }}>
       <Typography variant="h6" gutterBottom>
         Clinical Tools
       </Typography>
-      
-      {/* Mobile header for sidebar */}
+
       {isMobile && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Typography variant="h6">Menu</Typography>
           <IconButton onClick={() => setMobileSidebarOpen(false)} size="small">
             <Menu />
           </IconButton>
         </Box>
       )}
-      
+
       <Stack spacing={1}>
-        {[
-          { key: 'encounters', title: 'Encounters', icon: '📋' },
-          { key: 'visualAcuity', title: 'Visual Acuity', icon: '👁️' },
-          { key: 'refraction', title: 'Refraction', icon: '🔍' },
-          { key: 'exams', title: 'Exams', icon: '🩺' },
-          { key: 'notes', title: 'Clinical Notes', icon: '📝' },
-          { key: 'orders', title: 'Orders', icon: '💊' },
-        ].map((module) => {
-          const isDisabled = module.key !== 'encounters' && !selectedEncounterId;
-          
+        {MODULES.map((mod) => {
+          const disabled = mod.key !== "encounters" && !selectedEncounterId;
+
           return (
             <Chip
-              key={module.key}
-              label={module.title}
-              icon={<span>{module.icon}</span>}
-              onClick={() => onModuleClick(module.key)}
-              color={activeModule === module.key ? "primary" : "default"}
-              variant={activeModule === module.key ? "filled" : "outlined"}
-              disabled={isDisabled}
+              key={mod.key}
+              label={mod.title}
+              icon={<span>{mod.icon}</span>}
+              onClick={() => !disabled && onModuleClick(mod.key)}
+              color={activeModule === mod.key ? "primary" : "default"}
+              variant={activeModule === mod.key ? "filled" : "outlined"}
+              disabled={disabled}
               size={isMobile ? "small" : "medium"}
-              sx={{ 
-                justifyContent: 'flex-start',
-                opacity: isDisabled ? 0.5 : 1,
-                width: '100%',
-                '&:hover': {
-                  opacity: isDisabled ? 0.5 : 0.8,
-                }
+              sx={{
+                justifyContent: "flex-start",
+                opacity: disabled ? 0.5 : 1,
+                width: "100%",
+                "&:hover": {
+                  opacity: disabled ? 0.5 : 0.8,
+                },
               }}
             />
           );
@@ -81,47 +86,36 @@ function EncounterLayout({
   );
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Mobile App Bar Only */}
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       {isMobile && (
         <AppBar position="static" color="default" elevation={1}>
           <Toolbar>
-            <IconButton
-              edge="start"
-              onClick={() => setMobileSidebarOpen(true)}
-              sx={{ mr: 2 }}
-            >
+            <IconButton edge="start" onClick={() => setMobileSidebarOpen(true)}>
               <Menu />
             </IconButton>
             <Typography variant="h6" noWrap>
-              {[
-                { key: 'encounters', title: 'Encounters' },
-                { key: 'visualAcuity', title: 'Visual Acuity' },
-                { key: 'refraction', title: 'Refraction' },
-                { key: 'exams', title: 'Exams' },
-                { key: 'notes', title: 'Clinical Notes' },
-                { key: 'orders', title: 'Orders' },
-              ].find(m => m.key === activeModule)?.title || 'Clinical Tools'}
+              {MODULES.find((m) => m.key === activeModule)?.title ||
+                "Clinical Tools"}
             </Typography>
           </Toolbar>
         </AppBar>
       )}
-      
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Desktop Sidebar - ALWAYS VISIBLE */}
+
+      <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {!isMobile && (
-          <Box sx={{ 
-            width: 250, 
-            borderRight: 1, 
-            borderColor: 'divider', 
-            overflow: 'auto',
-            backgroundColor: 'grey.50'
-          }}>
+          <Box
+            sx={{
+              width: 250,
+              borderRight: 1,
+              borderColor: "divider",
+              overflow: "auto",
+              bgcolor: "grey.50",
+            }}
+          >
             {sidebarContent}
           </Box>
         )}
 
-        {/* Mobile Sidebar Drawer */}
         {isMobile && (
           <Drawer
             variant="temporary"
@@ -129,27 +123,20 @@ function EncounterLayout({
             onClose={() => setMobileSidebarOpen(false)}
             ModalProps={{ keepMounted: true }}
             sx={{
-              '& .MuiDrawer-paper': { 
-                boxSizing: 'border-box', 
-                width: 280 
+              "& .MuiDrawer-paper": {
+                width: 280,
+                boxSizing: "border-box",
               },
             }}
           >
             {sidebarContent}
           </Drawer>
         )}
-        
-        {/* Main Content */}
-        <Box sx={{ 
-          flex: 1, 
-          p: isMobile ? 1 : 3, 
-          overflow: 'auto',
-        }}>
+
+        <Box sx={{ flex: 1, p: isMobile ? 1 : 3, overflow: "auto" }}>
           {children}
         </Box>
       </Box>
     </Box>
   );
 }
-
-export default EncounterLayout;

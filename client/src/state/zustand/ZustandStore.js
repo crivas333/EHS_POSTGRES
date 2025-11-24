@@ -1,66 +1,72 @@
-
+// src/zustand/index.js
 import { create } from "zustand";
-//import { shallow } from "zustand/shallow";
 
-/* ============================================================================
-   Optimized Zustand Store
-   - Immutable updates
-   - Stable per-patient state
-   - No accidental object mutation
-   - Selector-friendly
-   ============================================================================ */
-
+/* ============================================================
+   AUTH STORE
+   ============================================================ */
 export const useAuthStore = create((set) => ({
   isAuth: false,
   currentUser: null,
+
   setIsAuth: (isAuth) => set({ isAuth }),
   setCurrentUser: (currentUser) => set({ currentUser }),
 }));
 
+/* ============================================================
+   PATIENT STORE
+   ============================================================ */
 export const usePatientStore = create((set) => ({
   currentPatient: null,
   setCurrentPatient: (currentPatient) => set({ currentPatient }),
 }));
 
+/* ============================================================
+   SEARCH STORE
+   ============================================================ */
 export const useSearchStore = create((set) => ({
   searchDate: new Date(),
   setSearchDate: (searchDate) => set({ searchDate }),
 }));
 
+/* ============================================================
+   NOTIFICATION STORE
+   ============================================================ */
 export const useNotificationStore = create((set) => ({
   notification: { open: false, message: "", status: "info" },
+
   show: (message, status = "info") =>
     set({ notification: { open: true, message, status } }),
+
   hide: () =>
     set((state) => ({
       notification: { ...state.notification, open: false },
     })),
 }));
 
-/* ============================================================================
-   Encounters Store (PER PATIENT)
-   ============================================================================ */
+/* ============================================================
+   ENCOUNTERS STORE — PERSISTED UI STATE PER PATIENT
+   ============================================================ */
 export const useEncountersStore = create((set, get) => ({
   encountersByPatient: {},
 
-  // Initialize state only once per patient
+  /* Initialize per-patient UI state (only once) */
   initPatientState: (patientId) =>
     set((state) => {
       if (!patientId) return state;
-      if (state.encountersByPatient[patientId]) return state; // already exists
+      if (state.encountersByPatient[patientId]) return state;
 
       return {
         encountersByPatient: {
           ...state.encountersByPatient,
           [patientId]: {
             selectedEncounterId: null,
-            //selectedAppointmentId: null,
+
             openSections: {
               encounters: true,
               visualAcuity: false,
-              //eyeTest: false,
               refraction: false,
             },
+
             pagination: { page: 0, rowsPerPage: 10 },
             sorting: { orderBy: "start", order: "desc" },
           },
@@ -68,108 +74,119 @@ export const useEncountersStore = create((set, get) => ({
       };
     }),
 
-  // Getters
+  /* Getters */
   getStateFor: (patientId) => get().encountersByPatient[patientId] ?? null,
   getPagination: (patientId) => get().encountersByPatient[patientId]?.pagination,
   getSorting: (patientId) => get().encountersByPatient[patientId]?.sorting,
 
-  // Setters (all immutable)
+  /* Setters */
   setSelectedEncounterId: (patientId, selectedEncounterId) =>
-    set((state) => ({
-      encountersByPatient: {
-        ...state.encountersByPatient,
-        [patientId]: {
-          ...state.encountersByPatient[patientId],
-          selectedEncounterId,
+    set((state) => {
+      if (!state.encountersByPatient[patientId]) return state;
+
+      return {
+        encountersByPatient: {
+          ...state.encountersByPatient,
+          [patientId]: {
+            ...state.encountersByPatient[patientId],
+            selectedEncounterId,
+          },
         },
-      },
-    })),
+      };
+    }),
 
   toggleSection: (patientId, key) =>
     set((state) => {
       const patient = state.encountersByPatient[patientId];
       if (!patient) return state;
 
-      const updated = {
-        ...patient,
-        openSections: {
-          ...patient.openSections,
-          [key]: !patient.openSections[key],
-        },
+      const newSections = {
+        ...patient.openSections,
+        [key]: !patient.openSections[key],
       };
 
       return {
         encountersByPatient: {
           ...state.encountersByPatient,
-          [patientId]: updated,
+          [patientId]: {
+            ...patient,
+            openSections: newSections,
+          },
         },
       };
     }),
 
   setPagination: (patientId, pagination) =>
-    set((state) => ({
-      encountersByPatient: {
-        ...state.encountersByPatient,
-        [patientId]: {
-          ...state.encountersByPatient[patientId],
-          pagination,
+    set((state) => {
+      if (!state.encountersByPatient[patientId]) return state;
+
+      return {
+        encountersByPatient: {
+          ...state.encountersByPatient,
+          [patientId]: {
+            ...state.encountersByPatient[patientId],
+            pagination,
+          },
         },
-      },
-    })),
+      };
+    }),
 
   setSorting: (patientId, sorting) =>
-    set((state) => ({
-      encountersByPatient: {
-        ...state.encountersByPatient,
-        [patientId]: {
-          ...state.encountersByPatient[patientId],
-          sorting,
+    set((state) => {
+      if (!state.encountersByPatient[patientId]) return state;
+
+      return {
+        encountersByPatient: {
+          ...state.encountersByPatient,
+          [patientId]: {
+            ...state.encountersByPatient[patientId],
+            sorting,
+          },
         },
+      };
+    }),
+}));
+
+/* ============================================================
+   ENCOUNTER DASHBOARD STORE — ACTIVE MODULE + MODULE STATE
+   ============================================================ */
+export const useEncounterDashboardStore = create((set, get) => ({
+  activeModule: "encounters",
+  moduleStates: {},
+
+  setActiveModule: (moduleName) => {
+    console.log("Setting active module:", moduleName);
+    set({ activeModule: moduleName });
+  },
+
+  setModuleState: (moduleName, state) =>
+    set((current) => ({
+      moduleStates: {
+        ...current.moduleStates,
+        [moduleName]: state,
       },
     })),
-}));
 
-
-
-/* ============================================================================
-   Encounter Dashboard Module Store
-   ============================================================================ */
-export const useEncounterDashboardStore = create((set, get) => ({
-  activeModule: 'overview',
-  moduleStates: {}, // Store state for each module
-  
-  //setActiveModule: (moduleName) => set({ activeModule: moduleName }),
-  setActiveModule: (moduleName) => {
-  console.log('Setting active module to:', moduleName);
-  set({ activeModule: moduleName });
-},
-  
-  setModuleState: (moduleName, state) => set((current) => ({
-    moduleStates: {
-      ...current.moduleStates,
-      [moduleName]: state
-    }
-  })),
-  
   getModuleState: (moduleName) => get().moduleStates[moduleName],
-  
-  goBack: () => set({ activeModule: 'overview' }),
+
+  goBack: () => set({ activeModule: "encounters" }),
 }));
 
-// Export individual actions as named exports
-export const useActiveModule = () => 
+/* Convenience hooks */
+export const useActiveModule = () =>
   useEncounterDashboardStore((state) => state.activeModule);
 
-export const useSetActiveModule = () => 
+export const useSetActiveModule = () =>
   useEncounterDashboardStore((state) => state.setActiveModule);
 
-export const useGoBack = () => 
+export const useGoBack = () =>
   useEncounterDashboardStore((state) => state.goBack);
 
-// Debug Hook
+/* Debug */
 if (typeof window !== "undefined") {
   window.useEncountersStore = useEncountersStore;
 }
+
 
 
 
