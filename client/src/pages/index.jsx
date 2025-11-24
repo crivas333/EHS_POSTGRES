@@ -14,7 +14,7 @@ import SystemConfigView from "./SystemConfigView.jsx";
 
 import { useApplicationFields } from "@/features/systemConfig/hooks/useApplicationFields"; // ✅ new hook
 //import OldDashboard from "@/components/dashboard/db1";
-import EncounterDashboard from "./EncounterDashboard.jsx";
+import EncounterDashboard from "../features/encounters/dashboard/EncounterDashboard.jsx";
 
 export default function Pages() {
 
