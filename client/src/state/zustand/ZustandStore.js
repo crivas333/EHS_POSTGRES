@@ -98,14 +98,16 @@ export const useEncountersStore = create(
       get().encountersByPatient[patientId]?.openSections,
 
     /* Setters */
-    setSelectedEncounterId: (patientId, value) =>
-      set((state) => {
-        const patient = state.encountersByPatient[patientId];
-        if (!patient) return state;
+   setSelectedEncounterId: (patientId, value) => {
+    console.log('Zustand Store - Setting selectedEncounterId:', { patientId, value });
+    set((state) => {
+      const patient = state.encountersByPatient[patientId];
+      if (!patient) return state;
 
-        patient.selectedEncounterId = value;
-        return { encountersByPatient: state.encountersByPatient };
-      }),
+      patient.selectedEncounterId = value;
+      return { encountersByPatient: state.encountersByPatient };
+    });
+  },
 
     toggleSection: (patientId, key) =>
       set((state) => {
@@ -175,9 +177,12 @@ export const useSetActiveModule = () =>
 export const useGoBack = () =>
   useEncounterDashboardStore((s) => s.goBack);
 
+
+
 /* ============================================================
    Debug Helper
    ============================================================ */
+   
 if (typeof window !== "undefined") {
   window.useEncountersStore = useEncountersStore;
 }

@@ -1,6 +1,5 @@
-
 // src/features/encounters/dashboard/EncounterDashboard.jsx
-import React, { useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
 import { useTheme, useMediaQuery } from "@mui/material";
 
@@ -23,13 +22,6 @@ function EncounterDashboard() {
   const currentPatient = usePatientStore((s) => s.currentPatient);
   const patientId = currentPatient?.id;
 
-  // Init state only when patient changes
-  useEffect(() => {
-    if (patientId) {
-      useEncountersStore.getState().initPatientState(patientId);
-    }
-  }, [patientId]);
-
   const activeModule = useEncounterDashboardStore((s) => s.activeModule);
   const mobileSidebarOpen = useEncounterDashboardStore((s) => s.mobileSidebarOpen);
 
@@ -42,21 +34,10 @@ function EncounterDashboard() {
     (s) => s.getStateFor(patientId)?.selectedEncounterId
   );
 
-  // Prevent infinite auto-navigation loop
-  const hasAutoNavigated = useRef(false);
-
-  useEffect(() => {
-    if (selectedEncounterId && !hasAutoNavigated.current) {
-      hasAutoNavigated.current = true;
-      setActiveModule("visualAcuity");
-    }
-  }, [selectedEncounterId, setActiveModule]);
-
-  // Stable click callback
+  // Stable click callback - NO AUTO-NAVIGATION
   const handleModuleClick = useCallback(
     (moduleKey) => {
       setActiveModule(moduleKey);
-      hasAutoNavigated.current = false;
       if (isMobile) setMobileSidebarOpen(false);
     },
     [isMobile, setActiveModule, setMobileSidebarOpen]
