@@ -123,7 +123,7 @@ export const useEncountersStore = create(
         if (!patient) return state;
 
         patient.pagination = pagination;
-        return { encountersBycentersByPatient: state.encountersByPatient };
+        return { encountersByByPatient: state.encountersByPatient };
       }),
 
     setSorting: (patientId, sorting) =>
@@ -140,63 +140,41 @@ export const useEncountersStore = create(
 /* ============================================================
    ENCOUNTER DASHBOARD STORE
    ============================================================ */
-export const useEncounterDashboardStore = create(
-  subscribeWithSelector((set, get) => ({
-    activeModule: "encounters",
-    moduleStates: {},
-
-    setActiveModule: (moduleName) => {
-      console.log("Setting active module:", moduleName);
-      set({ activeModule: moduleName });
-    },
-
-    setModuleState: (moduleName, state) =>
-      set((current) => ({
-        moduleStates: {
-          ...current.moduleStates,
-          [moduleName]: state,
-        },
-      })),
-
-    getModuleState: (moduleName) => get().moduleStates[moduleName],
-
-    goBack: () => set({ activeModule: "encounters" }),
-  }))
-);
-// In ZustandStore.js - update useEncounterUIStore
+// In ZustandStore.js - Replace both stores with this one
 export const useEncounterUIStore = create((set) => ({
+  // Active module tracking
   activeModule: "encounters",
+  
+  // Open/closed state of accordions
   openAccordions: ["encounters"],
+  
+  // Mobile sidebar state
+  mobileSidebarOpen: false,
 
-  setActiveModule: (moduleKey) =>
-    set(() => ({
-      activeModule: moduleKey,
-    })),
+  // Set the active module
+  setActiveModule: (moduleKey) => {
+    console.log("Setting active module to:", moduleKey);
+    set({ activeModule: moduleKey });
+  },
 
-  // Add this missing function
-  setActiveAccordion: (moduleKey) =>
-    set(() => ({
-      activeModule: moduleKey,
-    })),
-
-  toggleAccordion: (moduleKey) =>
+  // Toggle accordion open/closed
+  toggleAccordion: (moduleKey) => {
     set((state) => ({
       openAccordions: state.openAccordions.includes(moduleKey)
         ? state.openAccordions.filter((key) => key !== moduleKey)
         : [...state.openAccordions, moduleKey],
-    })),
+    }));
+  },
+
+  // Mobile sidebar controls
+  setMobileSidebarOpen: (open) => {
+    set({ mobileSidebarOpen: open });
+  },
+
+  // Navigation
+  goBack: () => set({ activeModule: "encounters" }),
 }));
-/* ============================================================
-   Convenience Hooks
-   ============================================================ */
-export const useActiveModule = () =>
-  useEncounterDashboardStore((s) => s.activeModule);
 
-export const useSetActiveModule = () =>
-  useEncounterDashboardStore((s) => s.setActiveModule);
-
-export const useGoBack = () =>
-  useEncounterDashboardStore((s) => s.goBack);
 
 
 

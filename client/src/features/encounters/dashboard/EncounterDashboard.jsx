@@ -1,11 +1,12 @@
 // src/features/encounters/dashboard/EncounterDashboard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { useTheme, useMediaQuery } from "@mui/material";
 
 import {
   usePatientStore,
   useEncountersStore,
+  useEncounterUIStore, // Now using the unified store
 } from "@/state/zustand/ZustandStore";
 
 import EncounterLayout from "@/features/encounters/layout/EncounterLayout";
@@ -15,10 +16,12 @@ import EncounterSidebar from "@/features/encounters/layout/EncounterSidebar";
 function EncounterDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const currentPatient = usePatientStore((s) => s.currentPatient);
   const patientId = currentPatient?.id;
+
+  // All UI state from unified store
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useEncounterUIStore();
 
   const initPatientState = useEncountersStore((s) => s.initPatientState);
 
@@ -29,7 +32,7 @@ function EncounterDashboard() {
     return id != null ? String(id) : null;
   });
 
-  /* Initialize patient encounter state only */
+  /* Initialize patient encounter state */
   useEffect(() => {
     if (patientId) {
       console.log("Initializing patient state for:", patientId);
