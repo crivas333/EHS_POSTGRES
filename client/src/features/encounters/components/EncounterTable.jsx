@@ -1,12 +1,9 @@
-
 // src/features/encounters/modules/EncounterTable.jsx
 import React, {
   useEffect,
   useMemo,
-  useRef,
   useCallback,
   memo,
-  Profiler,
 } from "react";
 
 import {
@@ -26,12 +23,9 @@ import {
 
 import { useEncounters } from "../hooks/useEncounters";
 import { useEncountersStore } from "@/state/zustand/ZustandStore";
-import { shallow } from "zustand/shallow";
-
-const isDev = import.meta.env.DEV;
 
 /* ---------------------------------------------------------------------------
-   Optimized Row Component – PRE-FORMATTED DATA ONLY
+   Optimized Row Component
 --------------------------------------------------------------------------- */
 const EncounterRow = memo(
   function EncounterRow({
@@ -41,11 +35,9 @@ const EncounterRow = memo(
     onSelect,
     page,
     rowsPerPage,
-    rowRefs,
   }) {
     return (
       <TableRow
-        ref={(el) => (rowRefs.current[enc.id] = el)}
         hover
         selected={isSelected}
         onClick={() => onSelect(enc.id)}
@@ -60,7 +52,6 @@ const EncounterRow = memo(
         }}
       >
         <TableCell>{page * rowsPerPage + rowIndex + 1}</TableCell>
-
         <TableCell
           sx={{
             fontWeight: isSelected ? 600 : 400,
@@ -69,10 +60,9 @@ const EncounterRow = memo(
         >
           {enc.id}
         </TableCell>
-
-        <TableCell>{enc.appointmentId}</TableCell>
-        <TableCell>{enc.encounterType}</TableCell>
-        <TableCell>{enc.consultReason}</TableCell>
+        <TableCell>{enc.appointmentId || "—"}</TableCell>
+        <TableCell>{enc.encounterType || "—"}</TableCell>
+        <TableCell>{enc.consultReason || "—"}</TableCell>
         <TableCell>{enc.startFormatted}</TableCell>
       </TableRow>
     );
@@ -85,25 +75,11 @@ const EncounterRow = memo(
 );
 
 /* ---------------------------------------------------------------------------
-   Dev-only profiling
---------------------------------------------------------------------------- */
-function onRenderProfiler(id, phase, actual, base) {
-  if (!isDev) return;
-  if (actual > 20) {
-    console.warn(
-      `⚠ Slow render in <${id}>: ${actual.toFixed(1)}ms (base ${base.toFixed(
-        1
-      )}ms)`
-    );
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   MAIN COMPONENT
+   MAIN COMPONENT - FIXED
 --------------------------------------------------------------------------- */
 function EncounterTable({ patientId }) {
   /* ---------------------------------------------------------------------
-     1. Stable Zustand Selectors
+     1. Zustand State - FIXED WITH DEFAULTS
   --------------------------------------------------------------------- */
   const initPatientState = useEncountersStore((s) => s.initPatientState);
 
@@ -111,42 +87,24 @@ function EncounterTable({ patientId }) {
     if (patientId) initPatientState(patientId);
   }, [patientId, initPatientState]);
 
-  const FALLBACK_PAGINATION = useMemo(
-    () => ({ page: 0, rowsPerPage: 10 }),
-    []
+  // Use individual selectors to avoid object reference issues
+  const pagination = useEncountersStore((s) => 
+    patientId ? s.getPagination(patientId) : { page: 0, rowsPerPage: 10 }
   );
-  const FALLBACK_SORTING = useMemo(
-    () => ({ orderBy: "start", order: "desc" }),
-    []
+  
+  const sorting = useEncountersStore((s) => 
+    patientId ? s.getSorting(patientId) : { orderBy: "start", order: "desc" }
   );
+  
+  const selectedEncounterId = useEncountersStore((s) => 
+    patientId ? s.getStateFor(patientId)?.selectedEncounterId : null
+  );
+  
+  const setSelectedEncounterId = useEncountersStore((s) => s.setSelectedEncounterId);
 
-  const pagination = useEncountersStore(
-    (s) =>
-      patientId
-        ? s.getPagination(patientId) || FALLBACK_PAGINATION
-        : FALLBACK_PAGINATION,
-    shallow
-  );
-
-  const sorting = useEncountersStore(
-    (s) =>
-      patientId
-        ? s.getSorting(patientId) || FALLBACK_SORTING
-        : FALLBACK_SORTING,
-    shallow
-  );
-
-  const selectedEncounterId = useEncountersStore(
-    (s) => (patientId ? s.getSelectedEncounterId?.(patientId) : null),
-    shallow
-  );
-
-  const setSelectedEncounterId = useEncountersStore(
-    (s) => s.setSelectedEncounterId
-  );
-
-  const { page, rowsPerPage } = pagination;
-  const { order, orderBy } = sorting;
+  // Provide safe defaults for destructuring
+  const { page = 0, rowsPerPage = 10 } = pagination || {};
+  const { order = "desc", orderBy = "start" } = sorting || {};
 
   /* ---------------------------------------------------------------------
      2. Fetch encounters
@@ -159,224 +117,163 @@ function EncounterTable({ patientId }) {
   } = useEncounters(patientId);
 
   /* ---------------------------------------------------------------------
-     3. Pre-normalize & Pre-format data — VERY IMPORTANT
-        → eliminates new Date() cost inside render
+     3. DATA PROCESSING - SIMPLIFIED
   --------------------------------------------------------------------- */
-  const normalized = useMemo(() => {
-    if (!encounters.length) return [];
+  const { paginatedData, totalCount } = useMemo(() => {
+    if (!encounters.length) return { paginatedData: [], totalCount: 0 };
 
-    return encounters.map((e) => ({
+    // Process data with safe defaults
+    const processed = encounters.map(e => ({
       ...e,
-      appointmentId: e.appointmentId ?? "—",
-      encounterType: e.encounterType ?? "—",
-      consultReason: e.consultReason ?? "—",
+      appointmentId: e.appointmentId || "—",
+      encounterType: e.encounterType || "—", 
+      consultReason: e.consultReason || "—",
       startFormatted: e.start ? new Date(e.start).toLocaleString() : "—",
-      sortValue: e[orderBy] ?? null,
     }));
-  }, [encounters, orderBy]);
 
-  /* ---------------------------------------------------------------------
-     4. Sorting (super fast)
-  --------------------------------------------------------------------- */
-  const sortedData = useMemo(() => {
-    if (normalized.length <= 1) return normalized;
-
-    const arr = [...normalized];
-    const dir = order === "asc" ? 1 : -1;
-
-    arr.sort((a, b) => {
-      const A = a.sortValue;
-      const B = b.sortValue;
-      if (A == null && B == null) return 0;
-      if (A == null) return 1;
-      if (B == null) return -1;
-      if (A > B) return dir;
-      if (A < B) return -dir;
-      return 0;
+    // Simple sorting
+    const sorted = [...processed].sort((a, b) => {
+      const aVal = a[orderBy];
+      const bVal = b[orderBy];
+      
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      
+      const comparison = String(aVal).localeCompare(String(bVal));
+      return order === "asc" ? comparison : -comparison;
     });
 
-    return arr;
-  }, [normalized, order]);
-
-  /* ---------------------------------------------------------------------
-     5. Pagination
-  --------------------------------------------------------------------- */
-  const paginatedData = useMemo(() => {
+    // Pagination
     const start = page * rowsPerPage;
-    return sortedData.slice(start, start + rowsPerPage);
-  }, [sortedData, page, rowsPerPage]);
+    const paginated = sorted.slice(start, start + rowsPerPage);
+
+    return { paginatedData: paginated, totalCount: sorted.length };
+  }, [encounters, orderBy, order, page, rowsPerPage]);
 
   /* ---------------------------------------------------------------------
-     6. Scroll to selected row
+     4. Handlers - STABLE
   --------------------------------------------------------------------- */
-  const rowRefs = useRef({});
+  const handleSort = useCallback((property) => {
+    if (!patientId) return;
+    const isAsc = orderBy === property && order === "asc";
+    useEncountersStore.getState().setSorting(patientId, {
+      orderBy: property,
+      order: isAsc ? "desc" : "asc",
+    });
+  }, [orderBy, order, patientId]);
 
-  useEffect(() => {
-    if (!selectedEncounterId) return;
-    const row = rowRefs.current[selectedEncounterId];
-    if (row) row.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [selectedEncounterId]);
+  const handlePageChange = useCallback((_, newPage) => {
+    if (!patientId) return;
+    useEncountersStore.getState().setPagination(patientId, {
+      page: newPage,
+      rowsPerPage,
+    });
+  }, [patientId, rowsPerPage]);
 
-  /* ---------------------------------------------------------------------
-     7. Handlers
-  --------------------------------------------------------------------- */
-  const handleSort = useCallback(
-    (property) => {
-      if (!patientId) return;
-      const isAsc = orderBy === property && order === "asc";
-      useEncountersStore
-        .getState()
-        .setSorting(patientId, {
-          orderBy: property,
-          order: isAsc ? "desc" : "asc",
-        });
-    },
-    [orderBy, order, patientId]
-  );
+  const handleRowsPerPageChange = useCallback((e) => {
+    if (!patientId) return;
+    useEncountersStore.getState().setPagination(patientId, {
+      page: 0,
+      rowsPerPage: parseInt(e.target.value, 10),
+    });
+  }, [patientId]);
 
-  const handlePageChange = useCallback(
-    (_, newPage) => {
-      if (!patientId) return;
-      useEncountersStore.getState().setPagination(patientId, {
-        ...pagination,
-        page: newPage,
-      });
-    },
-    [pagination, patientId]
-  );
-
-  const handleRowsPerPageChange = useCallback(
-    (e) => {
-      if (!patientId) return;
-      useEncountersStore.getState().setPagination(patientId, {
-        page: 0,
-        rowsPerPage: parseInt(e.target.value, 10),
-      });
-    },
-    [patientId]
-  );
-
-  const handleRowSelect = useCallback(
-    (id) => {
-      if (!patientId) return;
-      setSelectedEncounterId(patientId, Number(id));
-    },
-    [patientId, setSelectedEncounterId]
-  );
+  const handleRowSelect = useCallback((id) => {
+    if (!patientId) return;
+    setSelectedEncounterId(patientId, id);
+  }, [patientId, setSelectedEncounterId]);
 
   /* ---------------------------------------------------------------------
-     8. Render
+     5. Render
   --------------------------------------------------------------------- */
   return (
-    <Profiler id="EncounterTable" onRender={onRenderProfiler}>
-      <Paper sx={{ mt: 2, borderRadius: 2, overflow: "hidden" }}>
-        {isLoading && (
-          <Box display="flex" justifyContent="center" py={3}>
-            <CircularProgress />
-          </Box>
-        )}
+    <Paper sx={{ mt: 2, borderRadius: 2, overflow: "hidden" }}>
+      {isLoading && (
+        <Box display="flex" justifyContent="center" py={3}>
+          <CircularProgress />
+        </Box>
+      )}
 
-        {isError && (
-          <Typography color="error" sx={{ p: 2 }}>
-            Failed to load encounters: {error?.message ?? "unknown error"}
-          </Typography>
-        )}
+      {isError && (
+        <Typography color="error" sx={{ p: 2 }}>
+          Failed to load encounters: {error?.message ?? "unknown error"}
+        </Typography>
+      )}
 
-        {!isLoading && !isError && (
-          <>
-            {encounters.length === 0 ? (
-              <Typography sx={{ p: 2 }}>No encounters found.</Typography>
-            ) : (
-              <>
-                <TableContainer sx={{ maxHeight: 420 }}>
-                  <Table stickyHeader size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>#</TableCell>
-
-                        <TableCell
-                          sortDirection={orderBy === "id" ? order : false}
+      {!isLoading && !isError && (
+        <>
+          {encounters.length === 0 ? (
+            <Typography sx={{ p: 2 }}>No encounters found.</Typography>
+          ) : (
+            <>
+              <TableContainer sx={{ maxHeight: 420 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>#</TableCell>
+                      <TableCell sortDirection={orderBy === "id" ? order : false}>
+                        <TableSortLabel
+                          active={orderBy === "id"}
+                          direction={orderBy === "id" ? order : "asc"}
+                          onClick={() => handleSort("id")}
                         >
-                          <TableSortLabel
-                            active={orderBy === "id"}
-                            direction={orderBy === "id" ? order : "asc"}
-                            onClick={() => handleSort("id")}
-                          >
-                            Encounter ID
-                          </TableSortLabel>
-                        </TableCell>
-
-                        <TableCell
-                          sortDirection={
-                            orderBy === "appointmentId" ? order : false
-                          }
+                          Encounter ID
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sortDirection={orderBy === "appointmentId" ? order : false}>
+                        <TableSortLabel
+                          active={orderBy === "appointmentId"}
+                          direction={orderBy === "appointmentId" ? order : "asc"}
+                          onClick={() => handleSort("appointmentId")}
                         >
-                          <TableSortLabel
-                            active={orderBy === "appointmentId"}
-                            direction={
-                              orderBy === "appointmentId" ? order : "asc"
-                            }
-                            onClick={() =>
-                              handleSort("appointmentId")
-                            }
-                          >
-                            Appointment ID
-                          </TableSortLabel>
-                        </TableCell>
-
-                        <TableCell>Type</TableCell>
-                        <TableCell>Consult Reason</TableCell>
-
-                        <TableCell
-                          sortDirection={
-                            orderBy === "start" ? order : false
-                          }
+                          Appointment ID
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>Type</TableCell>
+                      <TableCell>Consult Reason</TableCell>
+                      <TableCell sortDirection={orderBy === "start" ? order : false}>
+                        <TableSortLabel
+                          active={orderBy === "start"}
+                          direction={orderBy === "start" ? order : "asc"}
+                          onClick={() => handleSort("start")}
                         >
-                          <TableSortLabel
-                            active={orderBy === "start"}
-                            direction={orderBy === "start" ? order : "asc"}
-                            onClick={() => handleSort("start")}
-                          >
-                            Start
-                          </TableSortLabel>
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
+                          Start
+                        </TableSortLabel>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
 
-                    <TableBody>
-                      {paginatedData.map((enc, index) => (
-                        <EncounterRow
-                          key={enc.id}
-                          enc={enc}
-                          rowIndex={index}
-                          isSelected={
-                            selectedEncounterId === Number(enc.id)
-                          }
-                          onSelect={handleRowSelect}
-                          page={page}
-                          rowsPerPage={rowsPerPage}
-                          rowRefs={rowRefs}
-                        />
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                  <TableBody>
+                    {paginatedData.map((enc, index) => (
+                      <EncounterRow
+                        key={enc.id}
+                        enc={enc}
+                        rowIndex={index}
+                        isSelected={selectedEncounterId === enc.id}
+                        onSelect={handleRowSelect}
+                        page={page}
+                        rowsPerPage={rowsPerPage}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-                <TablePagination
-                  component="div"
-                  count={sortedData.length}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
-                  onPageChange={handlePageChange}
-                  onRowsPerPageChange={handleRowsPerPageChange}
-                  rowsPerPageOptions={[5, 10, 25]}
-                />
-              </>
-            )}
-          </>
-        )}
-      </Paper>
-    </Profiler>
+              <TablePagination
+                component="div"
+                count={totalCount}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                onPageChange={handlePageChange}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </>
+          )}
+        </>
+      )}
+    </Paper>
   );
 }
 

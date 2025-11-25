@@ -30,9 +30,15 @@ function EncounterDashboard() {
     (s) => s.setMobileSidebarOpen
   );
 
-  const selectedEncounterId = useEncountersStore(
-    (s) => s.getStateFor(patientId)?.selectedEncounterId
-  );
+  // const selectedEncounterId = useEncountersStore(
+  //   (s) => s.getStateFor(patientId)?.selectedEncounterId
+  // );
+  const selectedEncounterId = useEncountersStore((s) => {
+    if (!patientId) return null;
+    const patientState = s.encountersByPatient[patientId];
+    const id = patientState?.selectedEncounterId;
+    return id != null ? String(id) : null; // Ensure string type
+  });
 
   // Stable click callback - NO AUTO-NAVIGATION
   const handleModuleClick = useCallback(
