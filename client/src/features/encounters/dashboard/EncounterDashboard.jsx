@@ -1,92 +1,62 @@
 // src/features/encounters/dashboard/EncounterDashboard.jsx
-import React, { useCallback, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { useTheme, useMediaQuery } from "@mui/material";
 
 import {
   usePatientStore,
   useEncountersStore,
-  useEncounterDashboardStore,
 } from "@/state/zustand/ZustandStore";
 
 import EncounterLayout from "@/features/encounters/layout/EncounterLayout";
-
-import EncountersModule from "@/features/encounters/modules/EncountersModule";
-import VisualAcuityModule from "@/features/encounters/modules/VisualAcuityModule";
-import RefractionModule from "@/features/encounters/modules/RefractionModule";
+import AccordionModules from "@/features/encounters/modules/AccordionModules";
+import EncounterSidebar from "@/features/encounters/layout/EncounterSidebar";
 
 function EncounterDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const currentPatient = usePatientStore((s) => s.currentPatient);
   const patientId = currentPatient?.id;
 
-  const activeModule = useEncounterDashboardStore((s) => s.activeModule);
-  const mobileSidebarOpen = useEncounterDashboardStore((s) => s.mobileSidebarOpen);
+  const initPatientState = useEncountersStore((s) => s.initPatientState);
 
-  const setActiveModule = useEncounterDashboardStore((s) => s.setActiveModule);
-  const setMobileSidebarOpen = useEncounterDashboardStore(
-    (s) => s.setMobileSidebarOpen
-  );
-
-  // const selectedEncounterId = useEncountersStore(
-  //   (s) => s.getStateFor(patientId)?.selectedEncounterId
-  // );
   const selectedEncounterId = useEncountersStore((s) => {
     if (!patientId) return null;
     const patientState = s.encountersByPatient[patientId];
     const id = patientState?.selectedEncounterId;
-    return id != null ? String(id) : null; // Ensure string type
+    return id != null ? String(id) : null;
   });
 
-  // Stable click callback - NO AUTO-NAVIGATION
-  const handleModuleClick = useCallback(
-    (moduleKey) => {
-      setActiveModule(moduleKey);
-      if (isMobile) setMobileSidebarOpen(false);
-    },
-    [isMobile, setActiveModule, setMobileSidebarOpen]
-  );
-
-  // Map names → component functions (NOT JSX)
-  const moduleComponents = useMemo(
-    () => ({
-      encounters: EncountersModule,
-      visualAcuity: VisualAcuityModule,
-      refraction: RefractionModule,
-    }),
-    []
-  );
-
-  const ActiveModule = moduleComponents[activeModule];
+  /* Initialize patient encounter state only */
+  useEffect(() => {
+    if (patientId) {
+      console.log("Initializing patient state for:", patientId);
+      initPatientState(patientId);
+    }
+  }, [patientId, initPatientState]);
 
   if (!currentPatient) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" color="text.secondary">
-          No patient selected.
-        </Typography>
+        <Typography>No patient selected.</Typography>
       </Box>
     );
   }
 
   return (
     <EncounterLayout
-      activeModule={activeModule}
-      onModuleClick={handleModuleClick}
-      selectedEncounterId={selectedEncounterId}
       isMobile={isMobile}
       mobileSidebarOpen={mobileSidebarOpen}
       setMobileSidebarOpen={setMobileSidebarOpen}
+      SidebarComponent={<EncounterSidebar />}
     >
-      <Box sx={{ width: "100%", height: "100%" }}>
-        <ActiveModule
-          patientId={patientId}
-          isMobile={isMobile}
-          encounterId={selectedEncounterId}
-        />
-      </Box>
+      <AccordionModules
+        encounterId={selectedEncounterId}
+        patientId={patientId}     
+        isMobile={isMobile}
+      />
     </EncounterLayout>
   );
 }

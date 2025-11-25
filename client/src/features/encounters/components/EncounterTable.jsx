@@ -74,12 +74,16 @@ const EncounterRow = memo(
     prev.rowsPerPage === next.rowsPerPage
 );
 
+// Default values as constants to avoid object recreation
+const DEFAULT_PAGINATION = { page: 0, rowsPerPage: 10 };
+const DEFAULT_SORTING = { orderBy: "start", order: "desc" };
+
 /* ---------------------------------------------------------------------------
    MAIN COMPONENT - FIXED
 --------------------------------------------------------------------------- */
 function EncounterTable({ patientId }) {
   /* ---------------------------------------------------------------------
-     1. Zustand State - FIXED WITH DEFAULTS
+     1. Zustand State - FIXED WITH STABLE SELECTORS
   --------------------------------------------------------------------- */
   const initPatientState = useEncountersStore((s) => s.initPatientState);
 
@@ -87,24 +91,32 @@ function EncounterTable({ patientId }) {
     if (patientId) initPatientState(patientId);
   }, [patientId, initPatientState]);
 
-  // Use individual selectors to avoid object reference issues
-  const pagination = useEncountersStore((s) => 
-    patientId ? s.getPagination(patientId) : { page: 0, rowsPerPage: 10 }
-  );
-  
-  const sorting = useEncountersStore((s) => 
-    patientId ? s.getSorting(patientId) : { orderBy: "start", order: "desc" }
-  );
-  
-  const selectedEncounterId = useEncountersStore((s) => 
-    patientId ? s.getStateFor(patientId)?.selectedEncounterId : null
-  );
-  
-  const setSelectedEncounterId = useEncountersStore((s) => s.setSelectedEncounterId);
+  // Use individual selectors with stable return values
+  const pagination = useEncountersStore((s) => {
+    if (!patientId) return DEFAULT_PAGINATION;
+    const patientState = s.encountersByPatient[patientId];
+    return patientState?.pagination || DEFAULT_PAGINATION;
+  });
 
-  // Provide safe defaults for destructuring
-  const { page = 0, rowsPerPage = 10 } = pagination || {};
-  const { order = "desc", orderBy = "start" } = sorting || {};
+  const sorting = useEncountersStore((s) => {
+    if (!patientId) return DEFAULT_SORTING;
+    const patientState = s.encountersByPatient[patientId];
+    return patientState?.sorting || DEFAULT_SORTING;
+  });
+
+  const selectedEncounterId = useEncountersStore((s) => {
+    if (!patientId) return null;
+    const patientState = s.encountersByPatient[patientId];
+    return patientState?.selectedEncounterId || null;
+  });
+
+  const setSelectedEncounterId = useEncountersStore((s) => s.setSelectedEncounterId);
+  const setPagination = useEncountersStore((s) => s.setPagination);
+  const setSorting = useEncountersStore((s) => s.setSorting);
+
+  // Destructure after stable selectors
+  const { page, rowsPerPage } = pagination;
+  const { order, orderBy } = sorting;
 
   /* ---------------------------------------------------------------------
      2. Fetch encounters
@@ -157,30 +169,31 @@ function EncounterTable({ patientId }) {
   const handleSort = useCallback((property) => {
     if (!patientId) return;
     const isAsc = orderBy === property && order === "asc";
-    useEncountersStore.getState().setSorting(patientId, {
+    setSorting(patientId, {
       orderBy: property,
       order: isAsc ? "desc" : "asc",
     });
-  }, [orderBy, order, patientId]);
+  }, [orderBy, order, patientId, setSorting]);
 
   const handlePageChange = useCallback((_, newPage) => {
     if (!patientId) return;
-    useEncountersStore.getState().setPagination(patientId, {
+    setPagination(patientId, {
       page: newPage,
       rowsPerPage,
     });
-  }, [patientId, rowsPerPage]);
+  }, [patientId, rowsPerPage, setPagination]);
 
   const handleRowsPerPageChange = useCallback((e) => {
     if (!patientId) return;
-    useEncountersStore.getState().setPagination(patientId, {
+    setPagination(patientId, {
       page: 0,
       rowsPerPage: parseInt(e.target.value, 10),
     });
-  }, [patientId]);
+  }, [patientId, setPagination]);
 
   const handleRowSelect = useCallback((id) => {
     if (!patientId) return;
+    console.log("Selecting encounter:", id, "for patient:", patientId);
     setSelectedEncounterId(patientId, id);
   }, [patientId, setSelectedEncounterId]);
 

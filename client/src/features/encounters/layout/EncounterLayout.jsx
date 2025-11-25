@@ -1,3 +1,4 @@
+
 // src/features/encounters/layout/EncounterLayout.jsx
 import React from "react";
 import {
@@ -9,8 +10,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import { Menu } from "@mui/icons-material";
 
@@ -24,16 +23,13 @@ const MODULES = [
 ];
 
 export default function EncounterLayout({
-  activeModule,
-  onModuleClick,
-  selectedEncounterId,
+  //selectedEncounterId,
+  isMobile,
   mobileSidebarOpen,
   setMobileSidebarOpen,
   children,
+  SidebarComponent,
 }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const sidebarContent = (
     <Box sx={{ p: isMobile ? 1 : 2, height: "100%", overflow: "auto" }}>
       <Typography variant="h6" gutterBottom>
@@ -56,32 +52,8 @@ export default function EncounterLayout({
         </Box>
       )}
 
-      <Stack spacing={1}>
-        {MODULES.map((mod) => {
-          const disabled = mod.key !== "encounters" && !selectedEncounterId;
-
-          return (
-            <Chip
-              key={mod.key}
-              label={mod.title}
-              icon={<span>{mod.icon}</span>}
-              onClick={() => !disabled && onModuleClick(mod.key)}
-              color={activeModule === mod.key ? "primary" : "default"}
-              variant={activeModule === mod.key ? "filled" : "outlined"}
-              disabled={disabled}
-              size={isMobile ? "small" : "medium"}
-              sx={{
-                justifyContent: "flex-start",
-                opacity: disabled ? 0.5 : 1,
-                width: "100%",
-                "&:hover": {
-                  opacity: disabled ? 0.5 : 0.8,
-                },
-              }}
-            />
-          );
-        })}
-      </Stack>
+      {/* NEW: sidebar passed from EncounterDashboard */}
+      {SidebarComponent}
     </Box>
   );
 
@@ -94,8 +66,7 @@ export default function EncounterLayout({
               <Menu />
             </IconButton>
             <Typography variant="h6" noWrap>
-              {MODULES.find((m) => m.key === activeModule)?.title ||
-                "Clinical Tools"}
+              Clinical Tools
             </Typography>
           </Toolbar>
         </AppBar>
