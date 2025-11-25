@@ -1,12 +1,11 @@
 // src/features/encounters/dashboard/EncounterDashboard.jsx
 import React, { useEffect } from "react";
-import { Box, Typography } from "@mui/material";
-import { useTheme, useMediaQuery } from "@mui/material";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 
 import {
   usePatientStore,
   useEncountersStore,
-  useEncounterUIStore, // Now using the unified store
+  useEncounterUIStore,
 } from "@/state/zustand/ZustandStore";
 
 import EncounterLayout from "@/features/encounters/layout/EncounterLayout";
@@ -20,33 +19,24 @@ function EncounterDashboard() {
   const currentPatient = usePatientStore((s) => s.currentPatient);
   const patientId = currentPatient?.id;
 
-  // All UI state from unified store
   const { mobileSidebarOpen, setMobileSidebarOpen } = useEncounterUIStore();
-
   const initPatientState = useEncountersStore((s) => s.initPatientState);
 
   const selectedEncounterId = useEncountersStore((s) => {
-    if (!patientId) return null;
-    const patientState = s.encountersByPatient[patientId];
-    const id = patientState?.selectedEncounterId;
-    return id != null ? String(id) : null;
+    const p = s.encountersByPatient[patientId];
+    return p?.selectedEncounterId != null ? String(p.selectedEncounterId) : null;
   });
 
-  /* Initialize patient encounter state */
   useEffect(() => {
-    if (patientId) {
-      console.log("Initializing patient state for:", patientId);
-      initPatientState(patientId);
-    }
+    if (patientId) initPatientState(patientId);
   }, [patientId, initPatientState]);
 
-  if (!currentPatient) {
+  if (!currentPatient)
     return (
       <Box sx={{ p: 3 }}>
         <Typography>No patient selected.</Typography>
       </Box>
     );
-  }
 
   return (
     <EncounterLayout
@@ -57,7 +47,7 @@ function EncounterDashboard() {
     >
       <AccordionModules
         encounterId={selectedEncounterId}
-        patientId={patientId}     
+        patientId={patientId}
         isMobile={isMobile}
       />
     </EncounterLayout>

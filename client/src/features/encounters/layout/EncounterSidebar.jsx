@@ -19,29 +19,18 @@ export default function EncounterSidebar() {
   const scrollToAccordion = (key) => {
     const el = document.getElementById(`accordion-${key}`);
     if (el) {
-      el.scrollIntoView({ 
-        behavior: "smooth", 
-        block: "start",
-        inline: "nearest"
-      });
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
   const handleClick = (key) => {
-    console.log("Sidebar clicked:", key);
-    
-    // Set active module
     setActiveModule(key);
 
-    // If accordion is not open, open it
     if (!openAccordions.includes(key)) {
       toggleAccordion(key);
     }
 
-    // Scroll to the accordion with a small delay to ensure it's rendered
-    setTimeout(() => {
-      scrollToAccordion(key);
-    }, 100);
+    setTimeout(() => scrollToAccordion(key), 100);
   };
 
   return (

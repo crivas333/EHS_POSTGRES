@@ -1,4 +1,3 @@
-
 // src/zustand/ZustandStore.js
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
@@ -44,9 +43,7 @@ export const useNotificationStore = create(
     notification: { open: false, message: "", status: "info" },
 
     show: (message, status = "info") =>
-      set({
-        notification: { open: true, message, status },
-      }),
+      set({ notification: { open: true, message, status } }),
 
     hide: () =>
       set((state) => ({
@@ -56,7 +53,7 @@ export const useNotificationStore = create(
 );
 
 /* ============================================================
-   ENCOUNTERS STORE — ULTRA-OPTIMIZED
+   ENCOUNTERS STORE — UI STATE ONLY
    ============================================================ */
 
 const DEFAULT_ENCOUNTER_STATE = {
@@ -76,37 +73,39 @@ export const useEncountersStore = create(
 
     initPatientState: (patientId) => {
       if (!patientId) return;
-      const exists = get().encountersByPatient[patientId];
-      if (exists) return;
 
-      set((state) => ({
-        encountersByPatient: {
-          ...state.encountersByPatient,
-          [patientId]: JSON.parse(JSON.stringify(DEFAULT_ENCOUNTER_STATE)),
-        },
-      }));
+      if (!get().encountersByPatient[patientId]) {
+        set((state) => ({
+          encountersByPatient: {
+            ...state.encountersByPatient,
+            [patientId]: JSON.parse(JSON.stringify(DEFAULT_ENCOUNTER_STATE)),
+          },
+        }));
+      }
     },
 
-    /* Getters */
-    getStateFor: (patientId) => get().encountersByPatient[patientId] || null,
-    getPagination: (patientId) =>
-      get().encountersByPatient[patientId]?.pagination || { page: 0, rowsPerPage: 10 },
-    getSorting: (patientId) =>
-      get().encountersByPatient[patientId]?.sorting || { orderBy: "start", order: "desc" },
-    getOpenSections: (patientId) =>
-      get().encountersByPatient[patientId]?.openSections,
+    /* ------------------------------
+       GETTERS
+    ------------------------------ */
+    getStateFor: (id) => get().encountersByPatient[id] || null,
+    getPagination: (id) =>
+      get().encountersByPatient[id]?.pagination ?? DEFAULT_ENCOUNTER_STATE.pagination,
+    getSorting: (id) =>
+      get().encountersByPatient[id]?.sorting ?? DEFAULT_ENCOUNTER_STATE.sorting,
+    getOpenSections: (id) =>
+      get().encountersByPatient[id]?.openSections ?? DEFAULT_ENCOUNTER_STATE.openSections,
 
-    /* Setters */
-    setSelectedEncounterId: (patientId, value) => {
-      console.log('Zustand Store - Setting selectedEncounterId:', { patientId, value });
+    /* ------------------------------
+       SETTERS
+    ------------------------------ */
+    setSelectedEncounterId: (patientId, value) =>
       set((state) => {
         const patient = state.encountersByPatient[patientId];
         if (!patient) return state;
 
         patient.selectedEncounterId = value;
-        return { encountersByPatient: state.encountersByPatient };
-      });
-    },
+        return { encountersByPatient: { ...state.encountersByPatient } };
+      }),
 
     toggleSection: (patientId, key) =>
       set((state) => {
@@ -114,7 +113,7 @@ export const useEncountersStore = create(
         if (!patient) return state;
 
         patient.openSections[key] = !patient.openSections[key];
-        return { encountersByPatient: state.encountersByPatient };
+        return { encountersByPatient: { ...state.encountersByPatient } };
       }),
 
     setPagination: (patientId, pagination) =>
@@ -123,7 +122,7 @@ export const useEncountersStore = create(
         if (!patient) return state;
 
         patient.pagination = pagination;
-        return { encountersByByPatient: state.encountersByPatient };
+        return { encountersByPatient: { ...state.encountersByPatient } };
       }),
 
     setSorting: (patientId, sorting) =>
@@ -132,56 +131,36 @@ export const useEncountersStore = create(
         if (!patient) return state;
 
         patient.sorting = sorting;
-        return { encountersByPatient: state.encountersByPatient };
+        return { encountersByPatient: { ...state.encountersByPatient } };
       }),
   }))
 );
 
 /* ============================================================
-   ENCOUNTER DASHBOARD STORE
+   ENCOUNTER UI STORE — SIDEBAR + MODULES
    ============================================================ */
-// In ZustandStore.js - Replace both stores with this one
 export const useEncounterUIStore = create((set) => ({
-  // Active module tracking
   activeModule: "encounters",
-  
-  // Open/closed state of accordions
   openAccordions: ["encounters"],
-  
-  // Mobile sidebar state
   mobileSidebarOpen: false,
 
-  // Set the active module
-  setActiveModule: (moduleKey) => {
-    console.log("Setting active module to:", moduleKey);
-    set({ activeModule: moduleKey });
-  },
+  setActiveModule: (key) => set({ activeModule: key }),
 
-  // Toggle accordion open/closed
-  toggleAccordion: (moduleKey) => {
+  toggleAccordion: (key) =>
     set((state) => ({
-      openAccordions: state.openAccordions.includes(moduleKey)
-        ? state.openAccordions.filter((key) => key !== moduleKey)
-        : [...state.openAccordions, moduleKey],
-    }));
-  },
+      openAccordions: state.openAccordions.includes(key)
+        ? state.openAccordions.filter((k) => k !== key)
+        : [...state.openAccordions, key],
+    })),
 
-  // Mobile sidebar controls
-  setMobileSidebarOpen: (open) => {
-    set({ mobileSidebarOpen: open });
-  },
+  setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
 
-  // Navigation
   goBack: () => set({ activeModule: "encounters" }),
 }));
 
-
-
-
 /* ============================================================
-   Debug Helper
+   Debugging Helper
    ============================================================ */
-   
 if (typeof window !== "undefined") {
   window.useEncountersStore = useEncountersStore;
 }
