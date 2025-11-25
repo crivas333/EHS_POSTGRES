@@ -94,6 +94,11 @@ export const useEncountersStore = create(
       get().encountersByPatient[patientId]?.pagination,
     getSorting: (patientId) =>
       get().encountersByPatient[patientId]?.sorting,
+    // getPagination: (patientId) =>
+    //   get().encountersByPatient[patientId]?.pagination || { page: 0, rowsPerPage: 10 },
+    // getSorting: (patientId) =>
+    //   get().encountersByPatient[patientId]?.sorting || { orderBy: "start", order: "desc" },
+
     getOpenSections: (patientId) =>
       get().encountersByPatient[patientId]?.openSections,
 
