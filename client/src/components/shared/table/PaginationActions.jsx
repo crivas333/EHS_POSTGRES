@@ -13,28 +13,23 @@ export default function TablePaginationActions(props) {
   const theme = useTheme();
   const { count, page, rowsPerPage, onPageChange } = props;
 
-  const handleFirstPageButtonClick = (event) => {
-    //console.log("event: ", event);
-    //onChangePage(event, 0);
+  const handleFirstPageButtonClick = () => {
     onPageChange(0);
   };
 
-  const handleBackButtonClick = (event) => {
-    //onChangePage(event, page - 1);
+  const handleBackButtonClick = () => {
     onPageChange(page - 1);
   };
 
-  const handleNextButtonClick = (event) => {
-    //onChangePage(event, page + 1);
+  const handleNextButtonClick = () => {
     onPageChange(page + 1);
   };
 
-  const handleLastPageButtonClick = (event) => {
-    //console.log("event: ", event);
-    //onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+  const handleLastPageButtonClick = () => {
     onPageChange(Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-    //console.log("handleNextPageButtonClick");
   };
+
+  const isLastPage = page >= Math.ceil(count / rowsPerPage) - 1;
 
   return (
     <Box sx={{ flexShrink: 0, ml: 2.5 }}>
@@ -45,6 +40,7 @@ export default function TablePaginationActions(props) {
       >
         {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
       </IconButton>
+
       <IconButton
         onClick={handleBackButtonClick}
         disabled={page === 0}
@@ -56,9 +52,10 @@ export default function TablePaginationActions(props) {
           <KeyboardArrowLeft />
         )}
       </IconButton>
+
       <IconButton
         onClick={handleNextButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        disabled={isLastPage}
         aria-label="next page"
       >
         {theme.direction === "rtl" ? (
@@ -67,9 +64,10 @@ export default function TablePaginationActions(props) {
           <KeyboardArrowRight />
         )}
       </IconButton>
+
       <IconButton
         onClick={handleLastPageButtonClick}
-        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        disabled={isLastPage}
         aria-label="last page"
       >
         {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}

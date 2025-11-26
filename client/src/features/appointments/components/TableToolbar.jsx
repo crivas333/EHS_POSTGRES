@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import AddEventDialogAppo from "./AddEventDialog";
-import GlobalFilter from "./GlobalFilter";
+import GlobalFilter from "../../../components/shared/table/GlobalFilter";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";

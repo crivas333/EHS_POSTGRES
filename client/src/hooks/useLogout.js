@@ -1,7 +1,7 @@
 // hooks/useLogout.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient";
-import { SIGNOUT } from "@/graphqlClient/gqlQueries_sessions";
+import { SIGNOUT } from "@/api/graphql/sessions";
 import { useAuthStore } from "@/state/zustand/ZustandStore";
 import { notify } from "@/components/shared/notification/Notify";
 

@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Navigate } from "react-router-dom";
 
 import { myclient } from "@/graphqlClient/myclient";
-import { SIGNIN, SIGNUP } from "@/graphqlClient/gqlQueries_sessions";
+import { SIGNIN, SIGNUP } from "@/api/graphql/sessions";
 import { SignInForm } from "@/components/landing/SignInForm.jsx";
 import { SignUpForm } from "@/components/landing/SignUpForm.jsx";
 

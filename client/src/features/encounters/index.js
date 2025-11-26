@@ -32,5 +32,5 @@ export * from "../../api/graphql/encounters";
 export { default as Encounters } from "./components/Encounters";
 export { default as DashboardTextField } from "./components/DashboardTextField";
 export { default as EncounterRow } from "./components/EncounterRow";
-export { default as PaginationActions } from "./components/PaginationActions";
+export { default as PaginationActions } from "../../components/shared/table/PaginationActions";
 export { default as TableFiltered } from "./components/TableFiltered";

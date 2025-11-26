@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient.js";
-import { IS_THERE_OPEN_SESSION } from "@/graphqlClient/gqlQueries_sessions.js";
+import { IS_THERE_OPEN_SESSION } from "@/api/graphql/sessions.js";
 import { ClientError } from "graphql-request";
 import { useAuthStore } from "@/state/zustand/ZustandStore";
 

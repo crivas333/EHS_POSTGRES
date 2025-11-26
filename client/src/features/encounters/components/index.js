@@ -7,5 +7,5 @@ export { default as ManifestRefraction } from './ManifestRefraction';
 export { default as DashboardTextField } from './DashboardTextField';
 export { default as EncounterRow } from './EncounterRow';
 export { default as Encounters } from './Encounters';
-export { default as PaginationActions } from './PaginationActions';
+export { default as PaginationActions } from '../../../components/shared/table/PaginationActions';
 export { default as TableFiltered } from './TableFiltered';
