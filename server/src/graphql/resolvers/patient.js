@@ -1,9 +1,13 @@
+
+// src/graphql/resolvers/patient.js
 import patientService from "../../services/patient.service.js";
 
 export default {
   Query: {
     patients: () => patientService.getAll(),
+
     patient: (_, { id }) => patientService.getById(id),
+
     searchPatientsByLastName: (_, args) =>
       patientService.searchByLastName(args.lastName, args.offset, args.limit),
 
@@ -26,9 +30,8 @@ export default {
   },
 
   Patient: {
-    fullName: (patient) => patient.fullName,
-    ageYears: (patient) => patient.ageYears,
-    ageMonths: (patient) => patient.ageMonths,
+    fullName: (p) => p.fullName,
+    ageYears: (p) => p.ageYears,
+    ageMonths: (p) => p.ageMonths,
   },
 };
-
