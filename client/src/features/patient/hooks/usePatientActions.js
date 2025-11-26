@@ -5,7 +5,7 @@ import {
   CREATE_PATIENT,
   UPDATE_PATIENT,
   DELETE_PATIENT,
-} from "@/features/patient/api/gqlQueries_patient";
+} from "@/api/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
 import { notify } from "@/components/shared/notification/Notify";
 

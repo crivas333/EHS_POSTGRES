@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient";
-import { GET_ENCOUNTERS_ET_BY_ENCOUNTER_ID } from "@/features/encounters/api/gqlQueries_encounters";
+import { GET_ENCOUNTERS_ET_BY_ENCOUNTER_ID } from "@/api/graphql/encounters";
 
 /**
  * Hook to fetch one Manifest Refraction record (ET data) for an encounter

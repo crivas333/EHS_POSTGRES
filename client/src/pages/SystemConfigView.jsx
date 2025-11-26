@@ -10,7 +10,7 @@ import {
   ADD_APPLICATIONFIELDS,
   UPDATE_APPLICATIONFIELDS,
   DELETE_APPLICATIONFIELDS,
-} from "@/features/systemConfig/api/gqlQueries_sysconf";
+} from "@/api/graphql/systemconfig";
 
 import EncounterControl from "@/features/systemConfig/components/EncounterControl";
 import ExamControl from "@/features/systemConfig/components/ExamControl";

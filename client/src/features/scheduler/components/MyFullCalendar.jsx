@@ -15,7 +15,7 @@ import {
   ADD_APPOINTMENT,
   UPDATE_APPOINTMENT,
   DELETE_APPOINTMENT,
-} from "@/features/scheduler/api/gqlQueries_appointments";
+} from "@/api/graphql/fullCalendar";
 
 
 

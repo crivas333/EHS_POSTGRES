@@ -1,4 +1,4 @@
-import { Appointment, Patient } from "../models/index.js";
+import { Appointment, Patient } from "../../models/index.js";
 
 // GET all appointments
 export const getAppointments = async (req, res, next) => {

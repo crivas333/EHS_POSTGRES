@@ -3,7 +3,7 @@
 // ===============================
 
 // 🧬 API (GraphQL Queries / Mutations)
-export * from "./api/gqlQueries_patient";
+export * from "../../api/graphql/patient";
 
 // 🪝 Hooks
 export * from "./hooks/usePatientSearch";

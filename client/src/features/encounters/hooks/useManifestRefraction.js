@@ -4,7 +4,7 @@ import { myclient } from "@/graphqlClient/myclient";
 //import { GET_MANIFEST_REFRACTION_BY_APPOINTMENT_ID } from "@/graphqlClient/gqlQueries_refraction";
 //import { GET_ENCOUNTERS_ET_BY_APPOINTMENT_ID } from "@/graphqlClient/gqlQueries_encounters"; // make sure you define this GQL query
 //import { GET_ENCOUNTERS_ET_BY_APPOINTMENT_ID } from "@/features/encounters"; 
-import { GET_ENCOUNTERS_ET_BY_ENCOUNTER_ID } from "@/features/encounters/api/gqlQueries_encounters";
+import { GET_ENCOUNTERS_ET_BY_ENCOUNTER_ID } from "@/api/graphql/encounters";
 
 
 /**

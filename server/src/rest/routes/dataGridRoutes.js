@@ -2,7 +2,7 @@ import express from "express";
 import {
   getAppointments,
   crudAppointments,
-} from "../REST_controllers/dataGridControllers.js";
+} from "../controllers/dataGridControllers.js";
 
 const router = express.Router();
 

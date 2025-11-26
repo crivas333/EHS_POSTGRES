@@ -6,14 +6,11 @@ import path from "path";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { graphqlHTTP } from "express-graphql";
-//import { makeExecutableSchema } from "@graphql-tools/schema";
-//import { authDirective, guestDirective } from "./directives/index.js";
-//import typeDefs from "./graphql/typeDefs/index.js";
-//import resolvers from "./resolvers/index.js";
+
 import morgan from "morgan";
 import os from "os";
-import dataGridRoutes from "./REST_routes/dataGridRoutes.js";
-import fullCalendarRoutes from "./REST_routes/fullCalendarRoutes.js";
+import dataGridRoutes from "./rest/routes/dataGridRoutes.js";
+import fullCalendarRoutes from "./rest/routes/fullCalendarRoutes.js";
 import { sequelize } from "./models/index.js"; // Sequelize instance
 import buildSchema from "./graphql/schema.js";
 

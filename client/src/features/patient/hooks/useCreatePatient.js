@@ -1,7 +1,7 @@
 // src/features/patient/hooks/useCreatePatient.js
 import { useMutation } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient";
-import { CREATE_PATIENT } from "../api/gqlQueries_patient";
+import { CREATE_PATIENT } from "../../../api/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
 import { notify } from "@/components/shared/notification/Notify";
 

@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient";
-import { GET_ENCOUNTERS_VA_BY_ENCOUNTER_ID } from "@/features/encounters/api/gqlQueries_encounters";
+import { GET_ENCOUNTERS_VA_BY_ENCOUNTER_ID } from "@/api/graphql/encounters";
 
 export function useEncountersVA(encounterId) {
   return useQuery({

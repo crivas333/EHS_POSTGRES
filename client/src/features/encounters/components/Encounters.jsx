@@ -14,7 +14,7 @@ import { myclient } from "@/graphqlClient/myclient";
 import {
   GET_ENCOUNTERS_BY_PATIENT_ID,
   SAVE_ENCOUNTER,
-} from "@/features/encounters/api/gqlQueries_encounters";
+} from "@/api/graphql/encounters";
 //import { UPDATE_APPOINTMENT_STATUS } from "@/features/encounters/api/gqlQueries_encounters";
 import { useEncounterForm } from "@/hooks/useEncounterForm";
 import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";

@@ -11,7 +11,7 @@ import { AsyncPaginate } from "react-select-async-paginate";
 import { useDebounce } from "use-debounce"; // ← ¡La estrella del show!
 
 import { myclient } from "@/graphqlClient/myclient";
-import { SEARCH_PATIENT_BY_ID } from "@/features/patient/api/gqlQueries_patient";
+import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
 import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
 import { useTheme } from "@mui/material/styles";

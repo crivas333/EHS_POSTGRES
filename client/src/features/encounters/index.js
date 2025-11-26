@@ -26,7 +26,7 @@ export { default as RefractionModule } from "./modules/RefractionModule";
 export { MODULE_CONFIG } from "./config/moduleConfig";
 
 // API Queries
-export * from "./api/gqlQueries_encounters";
+export * from "../../api/graphql/encounters";
 
 // Legacy/Additional Components (if needed)
 export { default as Encounters } from "./components/Encounters";

@@ -1,5 +1,5 @@
 // controllers/appointments.controller.js
-import { Appointment, Patient, sequelize } from "../models/index.js";
+import { Appointment, Patient, sequelize } from "../../models/index.js";
 import { Op } from "sequelize";
 
 /**

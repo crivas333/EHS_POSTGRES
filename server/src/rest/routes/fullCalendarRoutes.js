@@ -3,7 +3,7 @@ import {
   searchPatients,
   getAppointments,
   crudAppointments,
-} from "../REST_controllers/fullCalendarControllers.js";
+} from "../controllers/fullCalendarControllers.js";
 
 const router = express.Router();
 
