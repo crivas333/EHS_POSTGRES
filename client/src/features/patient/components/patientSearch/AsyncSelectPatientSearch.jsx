@@ -1,14 +1,6 @@
-// client/src/components/patient/patientSearch/AsyncSelectPatientSearch.jsx
-import React, {
-  useState,
-  forwardRef,
-  useImperativeHandle,
-  useCallback,
-  useMemo,
-} from "react";
 
+import React, { useState, forwardRef, useImperativeHandle, useCallback } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
-import { useDebounce } from "use-debounce";
 import { useTheme } from "@mui/material/styles";
 
 import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
@@ -19,7 +11,7 @@ import { getSelectStyles } from "@/theme/selectStyles";
 
 import "./asyncSelect.css";
 
-// Display label in menu
+// Format how each option appears in the dropdown
 const formatOptionLabel = ({ id, fullName, idTypeNo }) => (
   <span>{`${id} - ${fullName} (${idTypeNo})`}</span>
 );
@@ -36,7 +28,7 @@ async function fetchPatientById(id) {
 }
 
 const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
-  { setOptions, cacheUniqs },   // 👈 cacheUniqs added
+  { setOptions, cacheUniqs },
   ref
 ) {
   const theme = useTheme();
@@ -48,10 +40,7 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
   const [selectedValue, setSelectedValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
-  // Debounce input
-  const [debouncedInput] = useDebounce(inputValue, 400);
-
-  // Methods exposed to parent
+  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     clearSelect() {
       setSelectedValue(null);
@@ -63,11 +52,11 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
     },
   }));
 
-  // Loader
+  // Main loader for AsyncPaginate
   const loadOptions = useCallback(
     async (searchQuery, loaded, additional) => {
       const page = additional?.page ?? 1;
-      const clean = (debouncedInput || searchQuery).trim().toUpperCase();
+      const clean = searchQuery.trim().toUpperCase();
 
       if (clean.length < 2) {
         return {
@@ -92,13 +81,7 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
         additional: { page: page + 1 },
       };
     },
-    [debouncedInput, searchPatients, setOptions]
-  );
-
-  const memoizedLoadOptions = useMemo(
-    () => (query, loaded, additional) =>
-      loadOptions(query, loaded, additional),
-    [loadOptions]
+    [searchPatients, setOptions]
   );
 
   // Handle selection
@@ -115,14 +98,14 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
 
     setSelectedValue(option);
 
-    // Auto-clear after picking
+    // Auto-clear after selecting (EHR pattern)
     setTimeout(() => {
       setSelectedValue(null);
       setInputValue("");
     }, 300);
   };
 
-  // Track input
+  // Track input (forcing uppercase)
   const handleInputChange = (value, { action }) => {
     if (action === "input-change") {
       setInputValue(value.toUpperCase());
@@ -132,7 +115,7 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
   return (
     <AsyncPaginate
       styles={selectStyles}
-      loadOptions={memoizedLoadOptions}
+      loadOptions={loadOptions}      // no memo, no debounce
       value={selectedValue}
       inputValue={inputValue}
       onInputChange={handleInputChange}
@@ -140,9 +123,7 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
       formatOptionLabel={formatOptionLabel}
       placeholder="Busque por nombre, apellido o número de identificación"
       isClearable
-      // Removed: cacheOptions
-      // Removed: defaultOptions
-      cacheUniqs={cacheUniqs}     // 👈 NEW: enables cache invalidation
+      cacheUniqs={cacheUniqs}        // cache invalidation
       additional={{ page: 1 }}
       noOptionsMessage={({ inputValue }) =>
         inputValue.length < 2
@@ -154,4 +135,3 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
 });
 
 export default AsyncSelectPatientSearch;
-
