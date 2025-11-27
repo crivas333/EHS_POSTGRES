@@ -19,12 +19,12 @@ import { getSelectStyles } from "@/theme/selectStyles";
 
 import "./asyncSelect.css";
 
-// Format how each option appears
+// Display label in menu
 const formatOptionLabel = ({ id, fullName, idTypeNo }) => (
   <span>{`${id} - ${fullName} (${idTypeNo})`}</span>
 );
 
-// Fetch a single patient record by ID
+// Fetch a single patient by ID
 async function fetchPatientById(id) {
   try {
     const res = await myclient.request(SEARCH_PATIENT_BY_ID, { id });
@@ -36,7 +36,7 @@ async function fetchPatientById(id) {
 }
 
 const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
-  { setOptions },
+  { setOptions, cacheUniqs },   // 👈 cacheUniqs added
   ref
 ) {
   const theme = useTheme();
@@ -48,10 +48,10 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
   const [selectedValue, setSelectedValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
-  // Debounce input by 400ms
+  // Debounce input
   const [debouncedInput] = useDebounce(inputValue, 400);
 
-  // Expose methods to parent
+  // Methods exposed to parent
   useImperativeHandle(ref, () => ({
     clearSelect() {
       setSelectedValue(null);
@@ -63,15 +63,12 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
     },
   }));
 
-  /**
-   * MAIN SEARCH LOADER
-   */
+  // Loader
   const loadOptions = useCallback(
     async (searchQuery, loaded, additional) => {
       const page = additional?.page ?? 1;
       const clean = (debouncedInput || searchQuery).trim().toUpperCase();
 
-      // FIX A: enable search starting at 2 characters
       if (clean.length < 2) {
         return {
           options: [],
@@ -98,16 +95,13 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
     [debouncedInput, searchPatients, setOptions]
   );
 
-  // Memo wrapper so AsyncPaginate gets a stable function
   const memoizedLoadOptions = useMemo(
     () => (query, loaded, additional) =>
       loadOptions(query, loaded, additional),
     [loadOptions]
   );
 
-  /**
-   * Handle selection
-   */
+  // Handle selection
   const handleChange = async (option) => {
     if (!option) {
       setSelectedValue(null);
@@ -121,16 +115,14 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
 
     setSelectedValue(option);
 
-    // Auto-clear after selecting (EHR common pattern)
+    // Auto-clear after picking
     setTimeout(() => {
       setSelectedValue(null);
       setInputValue("");
     }, 300);
   };
 
-  /**
-   * Track input (forcing uppercase)
-   */
+  // Track input
   const handleInputChange = (value, { action }) => {
     if (action === "input-change") {
       setInputValue(value.toUpperCase());
@@ -148,8 +140,9 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
       formatOptionLabel={formatOptionLabel}
       placeholder="Busque por nombre, apellido o número de identificación"
       isClearable
-      cacheOptions
-      defaultOptions={false}
+      // Removed: cacheOptions
+      // Removed: defaultOptions
+      cacheUniqs={cacheUniqs}     // 👈 NEW: enables cache invalidation
       additional={{ page: 1 }}
       noOptionsMessage={({ inputValue }) =>
         inputValue.length < 2
@@ -161,3 +154,4 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
 });
 
 export default AsyncSelectPatientSearch;
+

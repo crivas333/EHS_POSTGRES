@@ -20,7 +20,11 @@ export default function PatientView() {
   const setCurrentPatient = usePatientStore((state) => state.setCurrentPatient);
 
   const selectRef = useRef();
+
   const [action, setAction] = useState(SEARCH);
+
+  // NEW: cache invalidation token for AsyncPaginate
+  const [paginationCacheKey, setPaginationCacheKey] = useState(0);
 
   const { createPatient, updatePatient, deletePatient } = usePatientActions();
 
@@ -40,16 +44,26 @@ export default function PatientView() {
     if (!currentPatient?.id) return;
 
     deletePatient.mutate({ variables: { id: currentPatient.id } });
+
     selectRef.current?.clearSelect?.();
-    selectRef.current?.refreshOptions?.();
+
+    // 🚀 NEW: Force AsyncPaginate to clear internal caches
+    setPaginationCacheKey(k => k + 1);
+
+    setCurrentPatient(null);
+    setAction(SEARCH);
   };
 
   return (
     <Box sx={{ flexDirection: "row" }}>
       <Grid container direction="column" spacing={2}>
+
         {/* Patient Search */}
         <Grid item>
-          <AsyncSelectPaginate ref={selectRef} />
+          <AsyncSelectPaginate
+            ref={selectRef}
+            cacheUniqs={[paginationCacheKey]}   // 👈 NEW
+          />
         </Grid>
 
         {/* Actions */}
@@ -73,7 +87,7 @@ export default function PatientView() {
 
             <Button
               color="secondary"
-              disabled={action !== SEARCH || !currentPatient?.id}
+              disabled={!currentPatient?.id}
               onClick={handleDelete}
             >
               BORRAR PACIENTE
@@ -85,10 +99,16 @@ export default function PatientView() {
         <Grid item>
           {action === SEARCH && <DisplayPatientTabForm />}
           {action === CREATE && (
-            <NewPatientTabForm createPatient={createPatient} handleCancel={handleCancel} />
+            <NewPatientTabForm
+              createPatient={createPatient}
+              handleCancel={handleCancel}
+            />
           )}
           {action === UPDATE && (
-            <UpdatePatientTabForm updatePatient={updatePatient} handleCancel={handleCancel} />
+            <UpdatePatientTabForm
+              updatePatient={updatePatient}
+              handleCancel={handleCancel}
+            />
           )}
         </Grid>
       </Grid>
