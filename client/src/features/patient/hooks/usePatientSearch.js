@@ -8,61 +8,37 @@ export function usePatientSearch() {
 
   const [patients, setPatients] = useState([]);
   const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [lastSearch, setLastSearch] = useState("");
 
   /**
-   * Search patients by name
-   * @param {string} searchTerm
-   * @param {boolean} loadMore - fetch next page
+   * Perform search
    */
-  const searchPatients = useCallback(
-    async (searchTerm, loadMore = false) => {
-      const trimmed = searchTerm.trim();
-      if (trimmed.length < 2) return [];
+  const searchPatients = useCallback(async (searchTerm, page = 1) => {
+    const trimmed = searchTerm.trim();
 
-      const queryPage = loadMore ? page : 1;
+    if (trimmed.length < 2) return [];
 
-      try {
-        const res = await myclient.request(SEARCH_PATIENT_BY_NAME, {
-          searchTerm: trimmed,
-          page: queryPage,
-          limit: PAGE_SIZE,
-        });
+    try {
+      const res = await myclient.request(SEARCH_PATIENT_BY_NAME, {
+        searchTerm: trimmed,
+        page,
+        limit: PAGE_SIZE,
+      });
 
-        const results = res?.searchPatientsByName ?? [];
+      const results = res?.searchPatientsByName ?? [];
 
-        if (loadMore) {
-          setPatients((prev) => [...prev, ...results]);
-        } else {
-          setPatients(results);
-          setLastSearch(trimmed);
-          setPage(2); // reset for next page
-        }
+      setPatients(results);
+      setHasMore(results.length === PAGE_SIZE);
 
-        setHasMore(results.length === PAGE_SIZE);
-
-        if (loadMore) setPage(queryPage + 1);
-
-        return results;
-      } catch (err) {
-        console.error("❌ Error fetching patients by search term:", err);
-        return [];
-      }
-    },
-    [page]
-  );
-
-  const loadMorePatients = useCallback(() => {
-    if (!hasMore) return [];
-    return searchPatients(lastSearch, true);
-  }, [hasMore, lastSearch, searchPatients]);
+      return results;
+    } catch (err) {
+      console.error("❌ Error searching patients:", err);
+      return [];
+    }
+  }, []);
 
   return {
     patients,
     hasMore,
     searchPatients,
-    loadMorePatients,
-    setPatients, // expose setter if UI needs to reset
   };
 }

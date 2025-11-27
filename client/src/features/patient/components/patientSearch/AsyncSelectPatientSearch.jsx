@@ -1,4 +1,3 @@
-
 // client/src/components/patient/patientSearch/AsyncSelectPatientSearch.jsx
 import React, {
   useState,
@@ -7,76 +6,81 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { AsyncPaginate } from "react-select-async-paginate";
-import { useDebounce } from "use-debounce"; // ← ¡La estrella del show!
 
-import { myclient } from "@/graphqlClient/myclient";
-import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
-import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
-import { usePatientStore } from "@/state/zustand/ZustandStore";
+import { AsyncPaginate } from "react-select-async-paginate";
+import { useDebounce } from "use-debounce";
 import { useTheme } from "@mui/material/styles";
+
+import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
+import { myclient } from "@/graphqlClient/myclient";
+import { usePatientStore } from "@/state/zustand/ZustandStore";
+import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
 import { getSelectStyles } from "@/theme/selectStyles";
 
 import "./asyncSelect.css";
 
-// Label format helper
+// Format how each option appears
 const formatOptionLabel = ({ id, fullName, idTypeNo }) => (
   <span>{`${id} - ${fullName} (${idTypeNo})`}</span>
 );
 
-// Helper: fetch full patient record by ID
-async function getPatientById(id) {
+// Fetch a single patient record by ID
+async function fetchPatientById(id) {
   try {
     const res = await myclient.request(SEARCH_PATIENT_BY_ID, { id });
     return res?.patient ?? null;
   } catch (err) {
-    console.error("getPatientById error:", err);
+    console.error("fetchPatientById error:", err);
     return null;
   }
 }
 
-// Main component
 const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
   { setOptions },
   ref
 ) {
   const theme = useTheme();
   const selectStyles = getSelectStyles(theme);
+
   const setCurrentPatient = usePatientStore((state) => state.setCurrentPatient);
   const { searchPatients } = usePatientSearch();
 
   const [selectedValue, setSelectedValue] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
-  // Debounce del input (¡400ms de espera!)
+  // Debounce input by 400ms
   const [debouncedInput] = useDebounce(inputValue, 400);
 
-  // Expose imperative methods
+  // Expose methods to parent
   useImperativeHandle(ref, () => ({
-    clearSelect: () => {
+    clearSelect() {
       setSelectedValue(null);
       setInputValue("");
       setCurrentPatient(null);
     },
-    refreshOptions: () => {
-      setInputValue(""); // forzará nueva búsqueda al escribir
+    refreshOptions() {
+      setInputValue("");
     },
   }));
 
-  // Fetch options basado en el valor debounced
+  /**
+   * MAIN SEARCH LOADER
+   */
   const loadOptions = useCallback(
-    async (searchQuery, loadedOptions, { page = 1 }) => {
-      const trimmed = searchQuery.trim().toUpperCase();
+    async (searchQuery, loaded, additional) => {
+      const page = additional?.page ?? 1;
+      const clean = (debouncedInput || searchQuery).trim().toUpperCase();
 
-      if (trimmed.length < 2) {
+      // FIX A: enable search starting at 2 characters
+      if (clean.length < 2) {
         return {
           options: [],
           hasMore: false,
+          additional: { page: 1 },
         };
       }
 
-      const results = await searchPatients(trimmed, page);
-
+      const results = await searchPatients(clean, page);
       const options = results.map((p) => ({
         id: p.id,
         fullName: p.fullName,
@@ -85,46 +89,51 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
 
       if (setOptions) setOptions(options);
 
-      const hasMore = results.length === 20; // tu PAGE_SIZE
-
       return {
         options,
-        hasMore,
-        additional: { page: hasMore ? page + 1 : page },
+        hasMore: results.length === 20,
+        additional: { page: page + 1 },
       };
     },
-    [searchPatients, setOptions]
+    [debouncedInput, searchPatients, setOptions]
   );
 
-  // Memoizamos loadOptions con el valor debounced
-  const memoizedLoadOptions = useMemo(() => {
-    return (searchQuery, loadedOptions, additional) =>
-      loadOptions(debouncedInput || searchQuery, loadedOptions, additional);
-  }, [debouncedInput, loadOptions]);
+  // Memo wrapper so AsyncPaginate gets a stable function
+  const memoizedLoadOptions = useMemo(
+    () => (query, loaded, additional) =>
+      loadOptions(query, loaded, additional),
+    [loadOptions]
+  );
 
-  // Handle selection
+  /**
+   * Handle selection
+   */
   const handleChange = async (option) => {
-    if (option) {
-      const patient = await getPatientById(option.id);
-      if (patient) setCurrentPatient(patient);
-      setSelectedValue(option);
-
-      // Auto-clear después de seleccionar (UX típico en EHRs)
-      setTimeout(() => {
-        setSelectedValue(null);
-        setInputValue("");
-      }, 300);
-    } else {
+    if (!option) {
       setSelectedValue(null);
       setCurrentPatient(null);
       setInputValue("");
+      return;
     }
+
+    const patient = await fetchPatientById(option.id);
+    if (patient) setCurrentPatient(patient);
+
+    setSelectedValue(option);
+
+    // Auto-clear after selecting (EHR common pattern)
+    setTimeout(() => {
+      setSelectedValue(null);
+      setInputValue("");
+    }, 300);
   };
 
-  // Handle input change (mantenemos mayúsculas)
-  const handleInputChange = (val, { action }) => {
+  /**
+   * Track input (forcing uppercase)
+   */
+  const handleInputChange = (value, { action }) => {
     if (action === "input-change") {
-      setInputValue(val.toUpperCase());
+      setInputValue(value.toUpperCase());
     }
   };
 
@@ -132,7 +141,6 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
     <AsyncPaginate
       styles={selectStyles}
       loadOptions={memoizedLoadOptions}
-      debounceTimeout={400} // opcional: AsyncPaginate ya no necesita debounce externo
       value={selectedValue}
       inputValue={inputValue}
       onInputChange={handleInputChange}
@@ -141,8 +149,8 @@ const AsyncSelectPatientSearch = forwardRef(function AsyncSelectPatientSearch(
       placeholder="Busque por nombre, apellido o número de identificación"
       isClearable
       cacheOptions
-      additional={{ page: 1 }}
       defaultOptions={false}
+      additional={{ page: 1 }}
       noOptionsMessage={({ inputValue }) =>
         inputValue.length < 2
           ? "Escriba al menos 2 caracteres"
