@@ -1,4 +1,4 @@
-// hooks/useSession.ts
+//client/src/hooks/useSession.ts
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { myclient } from "@/graphqlClient/myclient.js";

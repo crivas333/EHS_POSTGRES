@@ -1,90 +1,107 @@
-// src/pages/Login.jsx
-import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+// client/src/pages/Login.jsx
+import React, { useState, useEffect } from "react";
+import { gql } from "graphql-request";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Navigate } from "react-router-dom";
 
 import { myclient } from "@/graphqlClient/myclient";
-import { SIGNIN, SIGNUP } from "@/api/graphql/sessions";
+import { LOGIN, REGISTER } from "@/api/graphql/sessions";
 import { SignInForm } from "@/components/landing/SignInForm.jsx";
 import { SignUpForm } from "@/components/landing/SignUpForm.jsx";
 
-import { useAuthStore } from "@/state/zustand/ZustandStore"; 
+import { useAuthStore } from "@/state/zustand/ZustandStore";
 import { notify } from "@/components/shared/notification/Notify";
-import { useSession } from "@/hooks/useSession"; // ✅ session check
 
+// Helper to set JWT in graphql-request headers
+const setAuthToken = (token) => {
+  myclient.setHeader("Authorization", token ? `Bearer ${token}` : "");
+};
 
-
-import LoadingScreen from "@/components/shared/ui/LoadingScreen"; // ✅ new import
-
-// ----------------- GraphQL Helpers -----------------
-async function signInHelper(data) {
-  const res = await myclient.request(SIGNIN, data.variables);
-  return res.signIn;
-}
-
-async function signUpHelper(data) {
-  const res = await myclient.request(SIGNUP, data.variables);
-  return res.signUp;
-}
-
-// ----------------- Component -----------------
 export default function Login() {
-  const [gotoSignUp, setGotoSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { setCurrentUser, setIsAuth } = useAuthStore();
 
-  // Zustand hooks
-  const setIsAuth = useAuthStore((state) => state.setIsAuth);
-  const setCurrentUser = useAuthStore((state) => state.setCurrentUser);
+  // Check if already logged in via access token
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    setAuthToken(token);
+  }
 
-  // ✅ Session hook
-  const { data: session, isLoading } = useSession();
-
-  // ----------------- Mutations -----------------
-  const signIn = useMutation({
-    mutationFn: signInHelper,
-    onSuccess: (data) => {
-      setCurrentUser(data);
+  const loginMutation = useMutation({
+    mutationFn: ({ email, password }) =>
+      myclient.request(LOGIN, { email, password }),
+    onSuccess: ({ login }) => {
+      const { user, accessToken } = login;
+      localStorage.setItem("access_token", accessToken);
+      setAuthToken(accessToken);
+      setCurrentUser(user);
       setIsAuth(true);
-      queryClient.setQueryData(["session"], data);
-
       notify("Login exitoso", "success");
       navigate("/Paciente");
     },
     onError: (error) => {
-      console.error("Login failed:", error);
-      notify("Error: Login fallado", "error");
+      const message = error?.response?.errors?.[0]?.message || "Login fallido";
+      notify(message, "error");
     },
   });
 
-  const signUp = useMutation({
-    mutationFn: signUpHelper,
-    onSuccess: (data) => {
-      notify("Registración exitosa", "success");
-      setGotoSignUp(false);
-      console.log("Data - SignUp:", data);
+  const registerMutation = useMutation({
+    mutationFn: ({ input }) => myclient.request(REGISTER, { input }),
+    onSuccess: ({ register }) => {
+      const { user, accessToken } = register;
+      localStorage.setItem("access_token", accessToken);
+      setAuthToken(accessToken);
+      setCurrentUser(user);
+      setIsAuth(true);
+      notify("Registro exitoso", "success");
+      setIsSignUp(false);
+      navigate("/Paciente");
     },
     onError: (error) => {
-      console.error("SignUp failed:", error);
-      notify("Error: Registración fallada", "error");
+      const message = error?.response?.errors?.[0]?.message || "Registro fallido";
+      notify(message, "error");
     },
   });
 
-  // ----------------- Conditional Rendering -----------------
-  if (isLoading) {
-  return <LoadingScreen message="Cargando sesión…" />;
-}
+  // Auto-refresh token on mount if needed
+  useEffect(() => {
+    const refreshIfNeeded = async () => {
+      if (!token) return;
+      try {
+        const { refreshToken } = await myclient.request(gql`
+          mutation { refreshToken { accessToken } }
+        `);
+        localStorage.setItem("access_token", refreshToken.accessToken);
+        setAuthToken(refreshToken.accessToken);
+      } catch {
+        localStorage.removeItem("access_token");
+        setAuthToken("");
+      }
+    };
+    refreshIfNeeded();
+  }, [token]);
 
-if (session) {
-  return <Navigate to="/Paciente" replace />;
-}
+  // If already logged in → redirect
+  if (token && useAuthStore.getState().isAuth) {
+    return <Navigate to="/Paciente" replace />;
+  }
 
-  // ----------------- JSX -----------------
   return (
     <div>
-      {!gotoSignUp && <SignInForm click={() => setGotoSignUp(true)} signIn={signIn} />}
-      {gotoSignUp && <SignUpForm click={() => setGotoSignUp(true)} signUp={signUp} />}
+      {!isSignUp ? (
+        <SignInForm
+          onSubmit={(data) => loginMutation.mutate(data)}
+          isLoading={loginMutation.isPending}
+          onToggle={() => setIsSignUp(true)}
+        />
+      ) : (
+        <SignUpForm
+          onSubmit={(data) => registerMutation.mutate({ input: data })}
+          isLoading={registerMutation.isPending}
+          onToggle={() => setIsSignUp(false)}
+        />
+      )}
     </div>
   );
 }
-

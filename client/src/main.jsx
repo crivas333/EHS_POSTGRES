@@ -1,4 +1,4 @@
-// src/main.jsx
+//client/src/main.jsx
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { StyledEngineProvider } from "@mui/material/styles";

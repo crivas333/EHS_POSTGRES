@@ -1,78 +1,63 @@
+// client/src/components/landing/SignInForm.jsx
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography, Paper } from "@mui/material";
+import { Box, Button, TextField, Typography, Paper, CircularProgress } from "@mui/material";
 
-export const SignInForm = ({ signIn, click }) => {
+export const SignInForm = ({ onSubmit, isLoading, onToggle }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
     if (!email || !password) {
-      setError("Por favor, complete todos los campos");
+      setError("Completa todos los campos");
       return;
     }
     setError("");
-    try {
-      await signIn.mutate({ variables: { email, password } });
-    } catch (err) {
-      console.error(err);
-      setError("Error en inicio de sesión");
-    }
+    onSubmit({ email, password });
   };
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        maxWidth: 400,
-        margin: "auto",
-        mt: 8,
-        p: 4,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-      }}
-    >
+    <Paper elevation={3} sx={{ maxWidth: 400, margin: "auto", mt: 8, p: 4 }}>
       <Typography variant="h5" align="center" gutterBottom>
         Iniciar Sesión
       </Typography>
 
       {error && (
-        <Typography color="error" variant="body2" align="center">
+        <Typography color="error" align="center" sx={{ mb: 2 }}>
           {error}
         </Typography>
       )}
 
-      <form onSubmit={submit}>
-        <Box display="flex" flexDirection="column" gap={2}>
-          <TextField
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            label="Contraseña"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" variant="contained" color="primary">
-            Iniciar Sesión
-          </Button>
-        </Box>
-      </form>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <TextField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          fullWidth
+        />
+        <TextField
+          label="Contraseña"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          fullWidth
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isLoading}
+          startIcon={isLoading && <CircularProgress size={20} />}
+        >
+          {isLoading ? "Ingresando..." : "Iniciar Sesión"}
+        </Button>
+      </Box>
 
-      <Button
-        variant="outlined"
-        color="secondary"
-        onClick={click}
-        sx={{ mt: 1 }}
-      >
-        Registrarse
+      <Button variant="text" onClick={onToggle} sx={{ mt: 2 }}>
+        ¿No tienes cuenta? Regístrate
       </Button>
     </Paper>
   );

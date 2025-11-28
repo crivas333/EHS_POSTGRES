@@ -1,77 +1,96 @@
-//import { gql } from '@apollo/client'
+// client/src/graphql/sessions.js
 import { gql } from "graphql-request";
 
-export const GET_OPEN_SESSION = gql`
-  query getCurrentSession {
-    currentSession @client
-  }
-`;
-export const IS_USER_LOGGED_IN = gql`
-  query isUserLoggedIn {
-    isUserLoggedIn @client
-  }
-`;
+// ───────────────────────────────────────────────────────────────
+// QUERIES
+// ───────────────────────────────────────────────────────────────
 
-export const IS_THERE_OPEN_SESSION = gql`
-  query {
-    openSession {
-      id
-      firstName
-      lastName
-      userName
-      email
-    }
-  }
-`;
-
+// Get current user (protected by @auth → uses JWT)
 export const ME = gql`
-  query {
+  query Me {
     me {
       id
-      firstName
-      lastName
       userName
       email
+      firstName
+      lastName
+      fullName
+      role
+      isActive
     }
   }
 `;
 
-export const SIGNUP = gql`
-  mutation signUp(
-    $email: String!
-    $userName: String!
-    $firstName: String!
-    $lastName: String!
-    $password: String!
-  ) {
-    signUp(
-      email: $email
-      userName: $userName
-      firstName: $firstName
-      lastName: $lastName
-      password: $password
-    ) {
-      id
-      firstName
-      lastName
-      userName
-      email
+// ───────────────────────────────────────────────────────────────
+// MUTATIONS
+// ───────────────────────────────────────────────────────────────
+
+// REGISTER — returns user + accessToken
+export const REGISTER = gql`
+  mutation Register($input: RegisterInput!) {
+    register(input: $input) {
+      user {
+        id
+        userName
+        email
+        firstName
+        lastName
+        fullName
+        role
+        isActive
+      }
+      accessToken
+      expiresIn
     }
   }
 `;
-export const SIGNIN = gql`
-  mutation signIn($email: String!, $password: String!) {
-    signIn(email: $email, password: $password) {
-      id
-      firstName
-      lastName
-      userName
-      email
+
+// LOGIN — returns user + accessToken
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      user {
+        id
+        userName
+        email
+        firstName
+        lastName
+        fullName
+        role
+        isActive
+      }
+      accessToken
+      expiresIn
     }
   }
 `;
-export const SIGNOUT = gql`
-  mutation {
-    signOut
+
+// REFRESH TOKEN — silent renewal
+export const REFRESH_TOKEN = gql`
+  mutation RefreshToken {
+    refreshToken {
+      accessToken
+      expiresIn
+    }
   }
 `;
+
+// LOGOUT — clears httpOnly cookie
+export const LOGOUT = gql`
+  mutation Logout {
+    logout
+  }
+`;
+
+// ───────────────────────────────────────────────────────────────
+// INPUTS (for GraphQL variables)
+// ───────────────────────────────────────────────────────────────
+
+export const REGISTER_INPUT = {
+  userName: "admin",
+  email: "admin@example.com",
+  password: "Secrete12!",
+  firstName: "Admin",
+  lastName: "User",
+  role: "ADMIN", // optional
+};

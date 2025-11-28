@@ -1,3 +1,5 @@
+
+// server/src/index.js
 import dotenv from "dotenv";
 import { Pool } from "pg";
 import express from "express";
@@ -6,7 +8,8 @@ import path from "path";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { graphqlHTTP } from "express-graphql";
-import cookieParser from "cookie-parser";   // ← ADDED
+import cookieParser from "cookie-parser";
+import { renderPlaygroundPage } from "graphql-playground-html"; // ← CORRECTED EXPORT
 
 import morgan from "morgan";
 import os from "os";
@@ -50,8 +53,7 @@ const pool = new Pool({
   ssl: IN_PROD ? { rejectUnauthorized: false } : false,
 });
 
--pool.connect()
-+pool.connect()
+pool.connect()
   .then(() => console.log("PostgreSQL connected"))
   .catch((err) => {
     console.error("PostgreSQL connection error:", err);
@@ -74,7 +76,6 @@ pool.query("SELECT current_database(), current_user, version()")
 const app = express();
 if (!IN_PROD) app.use(morgan("dev"));
 
-// CORS (unchanged)
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -99,22 +100,15 @@ app.use((req, res, next) => {
 });
 
 app.disable("x-powered-by");
-
-// Body parsing
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // ← FIXED
+app.use(cookieParser());
 
-// ADD cookie-parser BEFORE session
-app.use(cookieParser());   // ← THIS IS THE KEY LINE
-
-// Session (still works — we keep it for now during transition)
+// Session (kept for fallback)
 const PgStore = connectPgSimple(session);
 app.use(
   session({
-    store: new PgStore({
-      pool,
-      tableName: "session",
-    }),
+    store: new PgStore({ pool, tableName: "session" }),
     name: process.env.SESS_NAME || "sid",
     secret: process.env.SESS_SECRET,
     resave: false,
@@ -133,14 +127,16 @@ app.use(
 app.use("/api/v1/dataGrid", dataGridRoutes);
 app.use("/api/v1/fullCalendar", fullCalendarRoutes);
 
-// GraphQL
+// -----------------------------
+// GraphQL API (no UI)
+// -----------------------------
 const schema = buildSchema();
 
 app.use(
   "/graphql",
   graphqlHTTP((req, res) => ({
     schema,
-    graphiql: !IN_PROD,
+    graphiql: false,
     context: { req, res, pool },
     customFormatErrorFn: (err) => {
       console.error("GraphQL Error:", err.message);
@@ -157,6 +153,21 @@ app.use(
   }))
 );
 
+// -----------------------------
+// FULL GRAPHQL PLAYGROUND WITH HEADERS TAB
+// -----------------------------
+app.get("/playground", (req, res) => {
+  const playground = renderPlaygroundPage({
+    endpoint: "/graphql",
+    subscriptionEndpoint: "/subscriptions", // optional
+    settings: {
+      "request.credentials": "include", // sends cookies
+    },
+  });
+  res.setHeader("Content-Type", "text/html");
+  res.send(playground);
+});
+
 // Production frontend
 if (IN_PROD) {
   const __dirname = path.resolve();
@@ -167,10 +178,8 @@ if (IN_PROD) {
   });
 }
 
-// 404 & error handler (unchanged)
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
-});
+// 404 & error handler
+app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
@@ -192,8 +201,9 @@ const startServer = async () => {
 
     app.listen(PORT, HOST, () => {
       console.log(`Server running at http://${LAN_IP}:${PORT}/graphql`);
+      console.log(`FULL PLAYGROUND → http://${LAN_IP}:${PORT}/playground`);
       if (isLAN) {
-        console.log(`LAN access: http://${LAN_IP}:${PORT}/graphql`);
+        console.log(`LAN access: http://${LAN_IP}:${PORT}/playground`);
       }
     });
   } catch (err) {
@@ -203,4 +213,3 @@ const startServer = async () => {
 };
 
 startServer();
-
