@@ -1,3 +1,4 @@
+//src/rest/controllers/dataGridControllers.js
 import { Appointment, Patient } from "../../models/index.js";
 
 // GET all appointments

@@ -1,4 +1,4 @@
-// controllers/appointments.controller.js
+//src/rest/controllers/fullCalendarControllers.js
 import { Appointment, Patient, sequelize } from "../../models/index.js";
 import { Op } from "sequelize";
 
