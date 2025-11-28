@@ -6,12 +6,13 @@ import path from "path";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { graphqlHTTP } from "express-graphql";
+import cookieParser from "cookie-parser";   // ← ADDED
 
 import morgan from "morgan";
 import os from "os";
 import dataGridRoutes from "./rest/routes/dataGridRoutes.js";
 import fullCalendarRoutes from "./rest/routes/fullCalendarRoutes.js";
-import { sequelize } from "./models/index.js"; // Sequelize instance
+import { sequelize } from "./models/index.js";
 import buildSchema from "./graphql/schema.js";
 
 dotenv.config({ path: "./server/src/.env" });
@@ -19,7 +20,7 @@ dotenv.config({ path: "./server/src/.env" });
 const IN_PROD = process.env.NODE_ENV === "production";
 
 // -----------------------------
-// Detect LAN IP for local network access
+// Detect LAN IP
 // -----------------------------
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -37,10 +38,10 @@ const LAN_SUBNET = LAN_IP.split(".").slice(0, 3).join(".");
 const isLAN = IN_PROD && true;
 
 // -----------------------------
-// PostgreSQL connection (pg.Pool)
+// PostgreSQL pool
 // -----------------------------
 if (!process.env.DATABASE_URL) {
-  console.error("❌ Missing DATABASE_URL in .env");
+  console.error("Missing DATABASE_URL in .env");
   process.exit(1);
 }
 
@@ -49,42 +50,40 @@ const pool = new Pool({
   ssl: IN_PROD ? { rejectUnauthorized: false } : false,
 });
 
-pool.connect()
-  .then(() => console.log("✅ PostgreSQL connected"))
+-pool.connect()
++pool.connect()
+  .then(() => console.log("PostgreSQL connected"))
   .catch((err) => {
-    console.error("❌ PostgreSQL connection error:", err);
+    console.error("PostgreSQL connection error:", err);
     process.exit(1);
   });
 
-// Run a test query
 pool.query("SELECT current_database(), current_user, version()")
   .then(res => {
-    console.log("🎯 Connected to DB:", res.rows[0].current_database);
-    console.log("👤 Connected as user:", res.rows[0].current_user);
-    console.log("🛠 PostgreSQL version:", res.rows[0].version);
+    console.log("Connected to DB:", res.rows[0].current_database);
+    console.log("Connected as user:", res.rows[0].current_user);
+    console.log("PostgreSQL version:", res.rows[0].version);
   })
   .catch(err => {
-    console.error("❌ Test query failed:", err);
+    console.error("Test query failed:", err);
   });
 
 // -----------------------------
-// Express app setup
+// Express app
 // -----------------------------
 const app = express();
 if (!IN_PROD) app.use(morgan("dev"));
 
+// CORS (unchanged)
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-
       try {
         const url = new URL(origin);
         const hostname = url.hostname;
-
         if (hostname === "localhost") return callback(null, true);
         if (hostname.startsWith(LAN_SUBNET)) return callback(null, true);
-
         return callback(new Error("CORS policy: Origin not allowed"));
       } catch (err) {
         return callback(new Error("CORS policy: Invalid origin"));
@@ -94,9 +93,8 @@ app.use(
   })
 );
 
-// Debug incoming requests
 app.use((req, res, next) => {
-  console.log("👉 Incoming request from origin:", req.headers.origin || "(no origin header)");
+  console.log("Incoming request from origin:", req.headers.origin || "(no origin)");
   next();
 });
 
@@ -106,11 +104,11 @@ app.disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// -----------------------------
-// Session setup with PostgreSQL
-// -----------------------------
-const PgStore = connectPgSimple(session);
+// ADD cookie-parser BEFORE session
+app.use(cookieParser());   // ← THIS IS THE KEY LINE
 
+// Session (still works — we keep it for now during transition)
+const PgStore = connectPgSimple(session);
 app.use(
   session({
     store: new PgStore({
@@ -131,30 +129,13 @@ app.use(
   })
 );
 
-// -----------------------------
-// REST API routes
-// -----------------------------
+// REST routes
 app.use("/api/v1/dataGrid", dataGridRoutes);
 app.use("/api/v1/fullCalendar", fullCalendarRoutes);
 
-// -----------------------------
-// GraphQL schema with directives
-// -----------------------------
-// const { authDirectiveTypeDefs, authDirectiveTransformer } = authDirective();
-// const { guestDirectiveTypeDefs, guestDirectiveTransformer } = guestDirective();
-
-// let schema = makeExecutableSchema({
-//   typeDefs: [authDirectiveTypeDefs, guestDirectiveTypeDefs, typeDefs],
-//   resolvers,
-// });
-
-// schema = authDirectiveTransformer(schema);
-// schema = guestDirectiveTransformer(schema);
-
+// GraphQL
 const schema = buildSchema();
-// -----------------------------
-// GraphQL endpoint
-// -----------------------------
+
 app.use(
   "/graphql",
   graphqlHTTP((req, res) => ({
@@ -176,30 +157,21 @@ app.use(
   }))
 );
 
-// -----------------------------
-// Serve React frontend in production
-// -----------------------------
+// Production frontend
 if (IN_PROD) {
   const __dirname = path.resolve();
   const clientDistPath = path.join(__dirname, "dist");
-
   app.use(express.static(clientDistPath));
-
   app.get(/.*/, (req, res) => {
     res.sendFile(path.join(clientDistPath, "index.html"));
   });
 }
 
-// -----------------------------
-// 404 handler
-// -----------------------------
+// 404 & error handler (unchanged)
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// -----------------------------
-// Global error handler
-// -----------------------------
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   console.error("Unhandled Error:", err);
@@ -209,28 +181,23 @@ app.use((err, req, res, next) => {
   });
 });
 
-// -----------------------------
-// Start server (no Sequelize sync)
-// -----------------------------
+// Start server
 const PORT = process.env.PORT || 4000;
 const HOST = "0.0.0.0";
 
 const startServer = async () => {
   try {
-    // ✅ Just test the Sequelize connection, don’t sync
     await sequelize.authenticate();
-    console.log("✅ Sequelize connected (no sync performed)");
+    console.log("Sequelize connected (no sync)");
 
     app.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running at http://${LAN_IP}:${PORT}/graphql`);
+      console.log(`Server running at http://${LAN_IP}:${PORT}/graphql`);
       if (isLAN) {
-        console.log(
-          `💡 LAN testing: Access from any phone/laptop at http://${LAN_IP}:${PORT}/graphql`
-        );
+        console.log(`LAN access: http://${LAN_IP}:${PORT}/graphql`);
       }
     });
   } catch (err) {
-    console.error("❌ Sequelize connection error:", err);
+    console.error("Sequelize connection error:", err);
     process.exit(1);
   }
 };

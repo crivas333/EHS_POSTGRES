@@ -1,3 +1,4 @@
+//src/graphql/schemas/
 import Joi from "./joi.js";
 
 export const objectId = Joi.object({

@@ -1,6 +1,6 @@
 // server/src/models/user.js
 import { DataTypes } from "sequelize";
-import { sequelize } from "../db.js"; // your Sequelize instance
+import { sequelize } from "../db.js";
 
 const User = sequelize.define(
   "User",
@@ -9,7 +9,6 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      //field: "user_id" // uncomment if DB column differs
     },
 
     // Names
@@ -35,31 +34,56 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-    },
-
-    // Authentication
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-
-    // Virtual field: full name
-    fullName: {
-      type: DataTypes.VIRTUAL,
-      get() {
-        return `${this.firstName} ${this.lastName}`;
+      validate: {
+        isEmail: true,
       },
     },
 
-    // Timestamps (managed by DB)
+    // Authentication
+    password_hash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: "password_hash",
+    },
+
+    // Role — matches DB default 'RECEPTIONIST'
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "RECEPTIONIST",
+      field: "role",
+      validate: {
+        isIn: [["ADMIN", "DOCTOR", "NURSE", "RECEPTIONIST", "PHARMACY", "LAB"]],
+      },
+    },
+
+    // Status — matches DB column name
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: "is_active",   // ← THIS IS THE KEY CHANGE
+    },
+
+    // Virtuals
+    fullName: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return `${this.firstName} ${this.lastName}`.trim();
+      },
+    },
+
+    // Timestamps
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
       field: "created_at",
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
       field: "updated_at",
     },
   },
@@ -67,9 +91,13 @@ const User = sequelize.define(
     sequelize,
     modelName: "User",
     tableName: "users",
-    timestamps: true, // SQL-first design, DB manages timestamps
-    underscored: true, // camelCase → snake_case mapping
+    timestamps: true,
+    underscored: true,
+    indexes: [
+      { unique: true, fields: ["email"] },
+      { unique: true, fields: ["user_name"] },
+    ],
   }
 );
 
-export default User ;
+export default User;

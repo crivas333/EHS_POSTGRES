@@ -1,4 +1,4 @@
-// src/schema.js
+// src/graphql/schema.js
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { authDirective, guestDirective } from "./directives/index.js";
 import typeDefs from "./typeDefs/index.js";
