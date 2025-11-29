@@ -5,13 +5,28 @@ import { subscribeWithSelector } from "zustand/middleware";
 /* ============================================================
    AUTH STORE
    ============================================================ */
-export const useAuthStore = create(
+  export const useAuthStore = create(
   subscribeWithSelector((set) => ({
     isAuth: false,
     currentUser: null,
+    isLoading: true, // ← Critical: loading state
 
-    setIsAuth: (isAuth) => set({ isAuth }),
-    setCurrentUser: (currentUser) => set({ currentUser }),
+    setAuth: (user, token) => {
+      if (user && token) {
+        localStorage.setItem("access_token", token);
+        set({ isAuth: true, currentUser: user, isLoading: false });
+      } else {
+        localStorage.removeItem("access_token");
+        set({ isAuth: false, currentUser: null, isLoading: false });
+      }
+    },
+
+    logout: () => {
+      localStorage.removeItem("access_token");
+      set({ isAuth: false, currentUser: null, isLoading: false });
+    },
+
+    finishLoading: () => set({ isLoading: false }),
   }))
 );
 

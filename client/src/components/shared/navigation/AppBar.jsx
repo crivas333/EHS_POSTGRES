@@ -1,3 +1,5 @@
+
+//client/src/components/shared/navigation//ResponsiveAppBar.jsx
 import React, { useRef } from "react";
 import { styled } from "@mui/material/styles";
 import MuiAppBar from "@mui/material/AppBar";
@@ -7,28 +9,25 @@ import Tooltip from "@mui/material/Tooltip";
 import Box from "@mui/material/Box";
 
 import MenuIcon from "@mui/icons-material/Menu";
-import PatientIcon from "@mui/icons-material/PermContactCalendar";
+import LogoutIcon from "@mui/icons-material/Logout";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 
 import { useNavigate } from "react-router-dom";
-import { useLogout } from "@/hooks/useLogout";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useThemeMode } from "@/state/context/useThemeMode";
 import PatientSummary from "@/features/patient/ui/PatientSummary";
 import { useAppBarHeight } from "@/constants/layout";
 
 const drawerWidth = 240;
 
-// ========================
-// Styled AppBar
-// ========================
 const StyledAppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => !["drawerLeftOpen", "drawerRightOpen", "isMobile"].includes(prop),
+  shouldForwardProp: (prop) =>
+    !["drawerLeftOpen", "drawerRightOpen", "isMobile"].includes(prop),
 })(({ theme, drawerLeftOpen, drawerRightOpen, isMobile }) => ({
   zIndex: theme.zIndex.drawer + 1,
   backgroundColor: theme.palette.primary.main,
   color: theme.palette.primary.contrastText,
-  borderRadius: 0,
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.standard,
@@ -44,9 +43,6 @@ const StyledAppBar = styled(MuiAppBar, {
       }),
 }));
 
-// ========================
-// Component
-// ========================
 function ResponsiveAppBar({
   drawerLeftOpen,
   drawerRightOpen,
@@ -57,17 +53,21 @@ function ResponsiveAppBar({
   isMobile,
 }) {
   const navigate = useNavigate();
-  const logout = useLogout();
+  const { mutate: logout } = useLogout();
   const { mode, toggleMode } = useThemeMode();
   const menuButtonRef = useRef(null);
   const appBarHeight = useAppBarHeight();
 
-  const handleLogoutClick = () => {
-    logout.mutate(undefined, { onSuccess: () => navigate("/landing") });
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => navigate("/login"),
+    });
   };
 
   const handleRightDrawerToggle = () => {
-    drawerRightOpen ? onClickHandleDrawerRightClose() : onClickHandleDrawerRightOpen();
+    drawerRightOpen
+      ? onClickHandleDrawerRightClose()
+      : onClickHandleDrawerRightOpen();
   };
 
   return (
@@ -93,7 +93,6 @@ function ResponsiveAppBar({
             ref={menuButtonRef}
             color="inherit"
             edge="start"
-            aria-label="toggle left drawer"
             onClick={() =>
               drawerLeftOpen
                 ? onClickHandleDrawerLeftClose()
@@ -103,21 +102,15 @@ function ResponsiveAppBar({
             <MenuIcon />
           </IconButton>
 
-          <Tooltip title="Cerrar sesión">
-            <IconButton color="inherit" onClick={handleLogoutClick}>
-              <PatientIcon />
-            </IconButton>
-          </Tooltip>
-
           <Box
             sx={{
               color: "inherit",
-              maxWidth: 250,
+              maxWidth: 300,
               overflow: "hidden",
               display: "-webkit-box",
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
-              lineHeight: 1.2,
+              lineHeight: 1.3,
             }}
           >
             <PatientSummary />
@@ -125,18 +118,20 @@ function ResponsiveAppBar({
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Tooltip title={`Cambiar a modo ${mode === "light" ? "oscuro" : "claro"}`}>
+          <Tooltip title={`Modo ${mode === "light" ? "oscuro" : "claro"}`}>
             <IconButton color="inherit" onClick={toggleMode}>
               {mode === "light" ? <Brightness4Icon /> : <Brightness7Icon />}
             </IconButton>
           </Tooltip>
 
+          <Tooltip title="Cerrar sesión">
+            <IconButton color="inherit" onClick={handleLogout}>
+              <LogoutIcon />
+            </IconButton>
+          </Tooltip>
+
           <Tooltip title="Panel derecho">
-            <IconButton
-              onClick={handleRightDrawerToggle}
-              color="inherit"
-              aria-label="toggle right drawer"
-            >
+            <IconButton color="inherit" onClick={handleRightDrawerToggle}>
               <MenuIcon />
             </IconButton>
           </Tooltip>
