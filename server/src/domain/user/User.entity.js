@@ -3,17 +3,15 @@ import { Role, RoleHierarchy } from "./role.enum.js";
 export class User {
   constructor(data) {
     this.id = data.id;
-    this.userName = data.userName?.trim().toLowerCase();
-    this.email = data.email?.trim().toLowerCase();
-    this.firstName = data.firstName?.trim();
-    this.lastName = data.lastName?.trim();
+    this.userName = data.userName || data.user_name;
+    this.email = data.email;
+    this.firstName = data.firstName || data.first_name;
+    this.lastName = data.lastName || data.last_name;
     this.role = data.role || Role.RECEPTIONIST;
-    this.isActive = data.isActive ?? true;
-    // THIS IS THE KEY — MUST BE password_hash (snake_case)
-    this.password_hash = data.password_hash;   // ← NOT passwordHash!
-
-    //this.createdAt = data.createdAt ? new Date(data.createdAt) : new Date();
-    //this.updatedAt = data.updatedAt ? new Date(data.updatedAt) : new Date();
+    this.isActive = data.isActive ?? data.is_active ?? true;
+    this.passwordHash = data.passwordHash || data.password_hash;
+    this.createdAt = data.createdAt || data.created_at;
+    this.updatedAt = data.updatedAt || data.updated_at;
   }
 
   get fullName() {
@@ -36,17 +34,18 @@ export class User {
   }
 
   toJSON() {
+    // FIX: Use password_hash (snake_case) to match Sequelize model
     return {
       id: this.id,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      userName: this.userName,
+      first_name: this.firstName,
+      last_name: this.lastName,
+      user_name: this.userName,
       email: this.email,
-      password_hash: this.password_hash,   // ← MUST BE snake_case
+      password_hash: this.passwordHash,  // ← CHANGE THIS LINE to snake_case
       role: this.role,
       is_active: this.isActive,
-      //createdAt: this.createdAt,
-      //updatedAt: this.updatedAt,
+      created_at: this.createdAt,
+      updated_at: this.updatedAt,
     };
   }
 }

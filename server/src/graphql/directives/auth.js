@@ -1,9 +1,6 @@
-// src/graphql/directives/auth.js
 import { defaultFieldResolver } from "graphql";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
-import { TokenService, AuthService } from "../../domain/auth/index.js";
-
-const authService = new AuthService();
+import { GraphQLError } from "graphql";
 
 export function authDirective(directiveName = "auth") {
   return {
@@ -18,21 +15,11 @@ export function authDirective(directiveName = "auth") {
             const { resolve = defaultFieldResolver } = fieldConfig;
 
             fieldConfig.resolve = async (source, args, context, info) => {
-              // Extract token from Authorization header or httpOnly cookie
-              const token =
-                context.req.headers.authorization?.replace("Bearer ", "") ||
-                context.req.cookies?.access_token;
-
-              if (!token) {
-                throw new Error("Authentication required");
-              }
-
-              try {
-                const payload = TokenService.verifyAccessToken(token);
-                const user = await authService.me(payload.userId);
-                context.user = user; // ← this is what your resolvers use
-              } catch (err) {
-                throw new Error("Invalid or expired token");
+              // Check if user exists in context (set by server middleware)
+              if (!context.user) {
+                throw new GraphQLError("Authentication required", {
+                  extensions: { code: "UNAUTHORIZED" },
+                });
               }
 
               return resolve(source, args, context, info);

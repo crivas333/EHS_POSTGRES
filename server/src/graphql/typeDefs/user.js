@@ -16,14 +16,14 @@ export default gql`
     logout: Boolean!   # ← NO @auth → works even with expired token
   }
 
-  input RegisterInput {
-    userName: String!
-    email: String!
-    password: String!
-    firstName: String!
-    lastName: String!
-    role: String
-  }
+ input RegisterInput {
+  userName: String!        # ← REQUIRED
+  email: String!           # ← REQUIRED
+  password: String!        # ← REQUIRED
+  firstName: String!       # ← REQUIRED
+  lastName: String!        # ← REQUIRED
+  role: String             # ← Optional
+}
 
   type AuthPayload {
     user: User!

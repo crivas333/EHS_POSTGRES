@@ -1,3 +1,4 @@
+//server/src/domain/auth/token.service.js
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production-2025";

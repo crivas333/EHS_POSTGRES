@@ -1,8 +1,7 @@
-// src/graphql/resolvers/auth.js
 import { AuthService, TokenService } from "../../domain/auth/index.js";
 import { GraphQLError } from "graphql";
 
-// ← ADD THIS LINE — create the instance!
+// ← THIS WAS MISSING - CREATE THE INSTANCE!
 const authService = new AuthService();
 
 export default {
@@ -32,7 +31,7 @@ export default {
     },
 
     login: async (_, { email, password }, { res }) => {
-      const result = await authService.login(email, password);   // ← NOW WORKS!
+      const result = await authService.login(email, password);
 
       res.cookie("refresh_token", result.refreshToken, {
         httpOnly: true,
@@ -66,7 +65,11 @@ export default {
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
-        return { accessToken: newAccessToken, expiresIn: 900 };
+        return { 
+          user: user,
+          accessToken: newAccessToken, 
+          expiresIn: 900 
+        };
       } catch {
         res.clearCookie("refresh_token");
         throw new GraphQLError("Invalid refresh token");

@@ -1,4 +1,3 @@
-
 // server/src/index.js
 import dotenv from "dotenv";
 import { Pool } from "pg";
@@ -9,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { graphqlHTTP } from "express-graphql";
 import cookieParser from "cookie-parser";
-import { renderPlaygroundPage } from "graphql-playground-html"; // ← CORRECTED EXPORT
+import { renderPlaygroundPage } from "graphql-playground-html";
 
 import morgan from "morgan";
 import os from "os";
@@ -17,10 +16,15 @@ import dataGridRoutes from "./rest/routes/dataGridRoutes.js";
 import fullCalendarRoutes from "./rest/routes/fullCalendarRoutes.js";
 import { sequelize } from "./models/index.js";
 import buildSchema from "./graphql/schema.js";
+import { AuthService, TokenService } from "./domain/auth/index.js";
+import { ValidationError, NotFoundError } from "./domain/shared/index.js";
 
 dotenv.config({ path: "./server/src/.env" });
 
 const IN_PROD = process.env.NODE_ENV === "production";
+
+// Create auth service instance
+const authService = new AuthService();
 
 // -----------------------------
 // Detect LAN IP
@@ -101,7 +105,7 @@ app.use((req, res, next) => {
 
 app.disable("x-powered-by");
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // ← FIXED
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Session (kept for fallback)
@@ -134,23 +138,74 @@ const schema = buildSchema();
 
 app.use(
   "/graphql",
-  graphqlHTTP((req, res) => ({
-    schema,
-    graphiql: false,
-    context: { req, res, pool },
-    customFormatErrorFn: (err) => {
-      console.error("GraphQL Error:", err.message);
-      if (err.extensions?.code === "UNAUTHORIZED") {
-        req.session?.destroy(() => {});
-        res.clearCookie(process.env.SESS_NAME || "sid");
+  graphqlHTTP(async (req, res) => {
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.replace("Bearer ", "");
+    
+    let user = null;
+    
+    if (token) {
+      try {
+        const payload = TokenService.verifyAccessToken(token);
+        user = await authService.me(payload.userId);
+        console.log("Authenticated user:", user?.email);
+      } catch (error) {
+        // Token verification failed - silent fail, let directives handle it
+        console.log("Token verification failed:", error.message);
       }
-      return {
-        message: err.message,
-        code: err.extensions?.code || "INTERNAL_ERROR",
-        path: err.path,
-      };
-    },
-  }))
+    }
+
+    return {
+      schema,
+      graphiql: false,
+      context: { 
+        req, 
+        res, 
+        pool,
+        user  // This is what the directives will check
+      },
+      customFormatErrorFn: (err) => {
+        console.error("GraphQL Error:", err.message);
+        
+        // Handle custom errors
+        if (err.originalError instanceof ValidationError) {
+          return {
+            message: err.originalError.message,
+            code: err.originalError.code || "VALIDATION_ERROR",
+            path: err.path,
+          };
+        }
+        
+        if (err.originalError instanceof NotFoundError) {
+          return {
+            message: err.originalError.message,
+            code: err.originalError.code || "NOT_FOUND",
+            path: err.path,
+          };
+        }
+        
+        // Handle GraphQL errors
+        if (err.extensions?.code === "UNAUTHORIZED") {
+          res.clearCookie("refresh_token");
+        }
+        
+        if (err.extensions?.code === "ALREADY_AUTHENTICATED") {
+          return {
+            message: err.message,
+            code: "ALREADY_AUTHENTICATED",
+            path: err.path,
+          };
+        }
+        
+        return {
+          message: err.message,
+          code: err.extensions?.code || "INTERNAL_ERROR",
+          path: err.path,
+        };
+      },
+    };
+  })
 );
 
 // -----------------------------
@@ -159,9 +214,9 @@ app.use(
 app.get("/playground", (req, res) => {
   const playground = renderPlaygroundPage({
     endpoint: "/graphql",
-    subscriptionEndpoint: "/subscriptions", // optional
+    subscriptionEndpoint: "/subscriptions",
     settings: {
-      "request.credentials": "include", // sends cookies
+      "request.credentials": "include",
     },
   });
   res.setHeader("Content-Type", "text/html");
@@ -202,6 +257,11 @@ const startServer = async () => {
     app.listen(PORT, HOST, () => {
       console.log(`Server running at http://${LAN_IP}:${PORT}/graphql`);
       console.log(`FULL PLAYGROUND → http://${LAN_IP}:${PORT}/playground`);
+      console.log(`Authentication endpoints available:`);
+      console.log(`  - Register: POST /graphql`);
+      console.log(`  - Login: POST /graphql`);
+      console.log(`  - Refresh: POST /graphql`);
+      console.log(`  - Logout: POST /graphql`);
       if (isLAN) {
         console.log(`LAN access: http://${LAN_IP}:${PORT}/playground`);
       }

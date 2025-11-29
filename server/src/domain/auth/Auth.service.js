@@ -1,83 +1,105 @@
 // src/domain/auth/Auth.service.js
-import bcrypt from "bcryptjs";
 import { GraphQLError } from "graphql";
-
 import { User } from "../../models/index.js";
-import { UserFactory } from "../user/index.js";           // ← works!
-import { TokenService } from "./index.js";                 // ← or "./token.service.js"
+import { UserFactory } from "../user/index.js";
+import { TokenService } from "./index.js";
 import argon2 from "argon2";
-import { ValidationError, NotFoundError } from "../shared/index.js"; // ← works!
+import { ValidationError, NotFoundError } from "../shared/index.js";
 
-// ← REMOVE "default" from the class
 export class AuthService {
+  async register(input) {
+    console.log("=== REGISTRATION DEBUG ===");
+    console.log("1. Registration input received:", JSON.stringify(input, null, 2));
+    
+    const userEntity = await UserFactory.create(input);
+    console.log("2. User entity created:", JSON.stringify(userEntity, null, 2));
+    
+    // Convert to plain object with proper field names for Sequelize
+    const userData = userEntity.toJSON();
+    console.log("3. User data for Sequelize (toJSON output):", JSON.stringify(userData, null, 2));
+    console.log("3b. Checking password fields:");
+  console.log("   - password_hash in userData:", userData.password_hash);
+  console.log("   - passwordHash in userData:", userData.passwordHash);
+  console.log("   - All keys in userData:", Object.keys(userData));
 
-async register(input) {
-  const userEntity = await UserFactory.create(input);
 
-  // THIS IS THE WINNING LINE — toJSON() converts to plain object!
-  const userModel = await User.create(userEntity.toJSON());
+    console.log("4. Attempting to create user in database...");
 
-  const user = UserFactory.fromSequelize(userModel);
-  const accessToken = TokenService.generateAccessToken(user);
-  const refreshToken = TokenService.generateRefreshToken(user.id);
+    
+    try {
+      const userModel = await User.create(userData);
+      console.log("5. User created successfully in database:", JSON.stringify(userModel.get({ plain: true }), null, 2));
+      console.log("5b. Created user data:", userModel.get({ plain: true }));
+      
+      const user = UserFactory.fromSequelize(userModel);
+      console.log("6. Final user object for response:", JSON.stringify(user, null, 2));
+      
+      const accessToken = TokenService.generateAccessToken(user);
+      const refreshToken = TokenService.generateRefreshToken(user.id);
+      
+      console.log("7. Tokens generated successfully");
+      console.log("=== REGISTRATION COMPLETE ===");
+      
+      return { user, accessToken, refreshToken };
+    } catch (error) {
+      console.error("!!! DATABASE CREATION ERROR:", error);
+      console.error("Error details:", error.errors);
+      throw error;
+    }
+  }
 
-  return { user, accessToken, refreshToken };
-}
-
-// src/domain/auth/Auth.service.js → login method (FINAL VERSION)
-async login(email, password) {
-  try {
+  async login(email, password) {
+    console.log("=== LOGIN DEBUG ===");
+    console.log("Login attempt for email:", email);
+    
     const userModel = await User.findOne({ 
       where: { email: email.toLowerCase() } 
     });
     
-    if (!userModel || !userModel.password_hash) {
+    if (!userModel) {
+      console.log("Login failed: User not found");
       throw new ValidationError("Invalid credentials");
     }
 
-    const hash = userModel.password_hash;
-    let valid = false;
-
-    if (hash.startsWith("$2")) {
-      valid = await bcrypt.compare(password, hash);
-    } else if (hash.startsWith("$argon2")) {
-      valid = await argon2.verify(hash, password);
+    console.log("User found in database:", userModel.get({ plain: true }));
+    
+    const hash = userModel.password_hash || userModel.getDataValue("password_hash");
+    
+    if (!hash) {
+      console.log("Login failed: No password hash found");
+      throw new ValidationError("Invalid credentials");
     }
 
+    const valid = await argon2.verify(hash, password);
     if (!valid) {
+      console.log("Login failed: Password verification failed");
       throw new ValidationError("Invalid credentials");
-    }
-
-    // SUCCESS — upgrade bcrypt → argon2 on login (optional but elite)
-    if (hash.startsWith("$2")) {
-      userModel.password_hash = await argon2.hash(password);
-      await userModel.save();
-      console.log(`Upgraded password hash to argon2 for ${email}`);
     }
 
     const user = UserFactory.fromSequelize(userModel);
     const accessToken = TokenService.generateAccessToken(user);
     const refreshToken = TokenService.generateRefreshToken(user.id);
 
+    console.log("Login successful for user:", user.email);
+    console.log("=== LOGIN COMPLETE ===");
+    
     return { user, accessToken, refreshToken };
-
-  } catch (err) {
-    // THIS IS THE KEY — re-throw as GraphQL-friendly error
-    if (err instanceof ValidationError) {
-      throw new GraphQLError(err.message, {
-        extensions: { code: "UNAUTHORIZED" }
-      });
-    }
-    throw err;
   }
-}
 
   async me(userId) {
+    console.log("=== ME QUERY DEBUG ===");
+    console.log("Fetching user with ID:", userId);
+    
     const userModel = await User.findByPk(userId);
-    if (!userModel) throw new NotFoundError("User not found");
-    return UserFactory.fromSequelize(userModel);
+    if (!userModel) {
+      console.log("User not found with ID:", userId);
+      throw new NotFoundError("User not found");
+    }
+    
+    const user = UserFactory.fromSequelize(userModel);
+    console.log("User found:", user.email);
+    console.log("=== ME QUERY COMPLETE ===");
+    
+    return user;
   }
 }
-
-// ← REMOVE the "default new AuthService()" line entirely!
-// We now export the CLASS, not an instance

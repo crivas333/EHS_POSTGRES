@@ -1,5 +1,3 @@
-
-// src/graphql/directives/guest.js
 import { defaultFieldResolver } from "graphql";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 import { GraphQLError } from "graphql";
@@ -17,14 +15,10 @@ export function guestDirective(directiveName = "guest") {
             const { resolve = defaultFieldResolver } = fieldConfig;
 
             fieldConfig.resolve = async (source, args, context, info) => {
-              // Check for JWT in header OR refresh token cookie
-              const hasAccessToken =
-                context.req.headers.authorization?.startsWith("Bearer ");
-              const hasRefreshToken = !!context.req.cookies?.refresh_token;
-
-              if (hasAccessToken || hasRefreshToken) {
+              // Check if user exists in context (already authenticated)
+              if (context.user) {
                 throw new GraphQLError("You are already logged in.", {
-                  extensions: { code: "UNAUTHORIZED" },
+                  extensions: { code: "ALREADY_AUTHENTICATED" },
                 });
               }
 
