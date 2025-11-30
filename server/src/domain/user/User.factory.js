@@ -7,8 +7,10 @@ export const UserFactory = {
   async create(input) {
     if (!input.userName?.trim()) throw new ValidationError("Username required");
     if (!input.email?.trim()) throw new ValidationError("Email required");
-    if (!input.password || input.password.length < 8) {
-      throw new ValidationError("Password must be 8+ chars");
+    
+    // ADD STRICT PASSWORD VALIDATION
+    if (!input.password || typeof input.password !== 'string' || input.password.trim().length < 8) {
+      throw new ValidationError("Password must be a non-empty string with 8+ characters");
     }
 
     const passwordHash = await argon2.hash(input.password);

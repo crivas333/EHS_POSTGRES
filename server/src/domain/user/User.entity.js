@@ -3,17 +3,16 @@ import { Role, RoleHierarchy } from "./role.enum.js";
 
 export class User {
   constructor(data) {
-    // Handle both camelCase and snake_case field names
     this.id = data.id;
-    this.userName = data.userName || data.user_name;
+    this.userName = data.userName;
     this.email = data.email;
-    this.firstName = data.firstName || data.first_name;
-    this.lastName = data.lastName || data.last_name;
+    this.firstName = data.firstName;
+    this.lastName = data.lastName;
     this.role = data.role || Role.RECEPTIONIST;
-    this.isActive = data.isActive ?? data.is_active ?? true;
-    this.passwordHash = data.passwordHash || data.password_hash;
-    this.createdAt = data.createdAt || data.created_at;
-    this.updatedAt = data.updatedAt || data.updated_at;
+    this.isActive = data.isActive ?? true;
+    this.passwordHash = data.passwordHash;
+    this.createdAt = data.createdAt;
+    this.updatedAt = data.updatedAt;
   }
 
   get fullName() {
