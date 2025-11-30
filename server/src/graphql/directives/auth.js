@@ -8,14 +8,13 @@ export function authDirective(directiveName = "auth") {
     
     authDirectiveTransformer: (schema) =>
       mapSchema(schema, {
-        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+        [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
           const authDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
 
           if (authDirective) {
             const { resolve = defaultFieldResolver } = fieldConfig;
 
-            fieldConfig.resolve = async (source, args, context, info) => {
-              // Check if user exists in context (set by server middleware)
+            fieldConfig.resolve = async function (source, args, context, info) {
               if (!context.user) {
                 throw new GraphQLError("Authentication required", {
                   extensions: { code: "UNAUTHORIZED" },

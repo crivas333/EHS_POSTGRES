@@ -14,8 +14,7 @@ export function guestDirective(directiveName = "guest") {
           if (guestDir) {
             const { resolve = defaultFieldResolver } = fieldConfig;
 
-            fieldConfig.resolve = async (source, args, context, info) => {
-              // Check if user exists in context (already authenticated)
+            fieldConfig.resolve = async function (source, args, context, info) {
               if (context.user) {
                 throw new GraphQLError("You are already logged in.", {
                   extensions: { code: "ALREADY_AUTHENTICATED" },
@@ -25,7 +24,6 @@ export function guestDirective(directiveName = "guest") {
               return resolve(source, args, context, info);
             };
           }
-
           return fieldConfig;
         },
       }),

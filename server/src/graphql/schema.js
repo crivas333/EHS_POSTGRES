@@ -12,8 +12,12 @@ export default function buildSchema() {
     resolvers,
   });
 
+  console.log("Applying auth directive transformer...");
   schema = authDirectiveTransformer(schema);
+  
+  console.log("Applying guest directive transformer...");
   schema = guestDirectiveTransformer(schema);
 
+  console.log("Schema built with directives");
   return schema;
 }

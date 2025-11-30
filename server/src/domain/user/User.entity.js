@@ -1,7 +1,9 @@
+//server/src/domain/user/User.entity.js
 import { Role, RoleHierarchy } from "./role.enum.js";
 
 export class User {
   constructor(data) {
+    // Handle both camelCase and snake_case field names
     this.id = data.id;
     this.userName = data.userName || data.user_name;
     this.email = data.email;
@@ -19,33 +21,49 @@ export class User {
   }
 
   hasRole(required) {
-    if (this.role === Role.ADMIN) return true;
-    return (RoleHierarchy[this.role] || 0) >= (RoleHierarchy[required] || 0);
+    return this.role === Role.ADMIN || 
+           (RoleHierarchy[this.role] || 0) >= (RoleHierarchy[required] || 0);
   }
 
   can(permission) {
-    const perms = {
+    const permissions = {
       [Role.ADMIN]: ["*"],
       [Role.DOCTOR]: ["prescribe", "view_encounter", "edit_encounter"],
       [Role.NURSE]: ["edit_vitals"],
       [Role.RECEPTIONIST]: ["create_appointment", "check_in_patient"],
     };
-    return perms[this.role]?.includes("*") || perms[this.role]?.includes(permission);
+    
+    const rolePerms = permissions[this.role];
+    return rolePerms?.includes("*") || rolePerms?.includes(permission);
   }
 
   toJSON() {
-    // FIX: Use password_hash (snake_case) to match Sequelize model
     return {
       id: this.id,
       first_name: this.firstName,
       last_name: this.lastName,
       user_name: this.userName,
       email: this.email,
-      password_hash: this.passwordHash,  // ← CHANGE THIS LINE to snake_case
+      password_hash: this.passwordHash,
       role: this.role,
       is_active: this.isActive,
       created_at: this.createdAt,
       updated_at: this.updatedAt,
+    };
+  }
+
+  toGraphQL() {
+    return {
+      id: String(this.id),
+      userName: this.userName,
+      email: this.email,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      fullName: this.fullName,
+      role: this.role,
+      isActive: this.isActive,
+      createdAt: this.createdAt?.toISOString?.(),
+      updatedAt: this.updatedAt?.toISOString?.(),
     };
   }
 }

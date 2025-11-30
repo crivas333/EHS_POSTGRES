@@ -2,19 +2,12 @@
 import { Patient } from "./Patient.entity.js";
 import { ValidationError } from "../shared/index.js";
 
-// Robust date parser that accepts ISO strings, Date objects, etc.
 const parseDate = (dateInput) => {
   if (!dateInput) return null;
-
-  // Handle string, Date, or number
   const date = new Date(dateInput);
-
-  // Critical: Check if it's a valid date
   if (isNaN(date.getTime())) {
-    throw new ValidationError(`Invalid date provided: ${JSON.stringify(dateInput)}`);
+    throw new ValidationError(`Invalid date: ${dateInput}`);
   }
-
-  // Return proper Date object (PostgreSQL will accept it)
   return date;
 };
 
@@ -28,36 +21,36 @@ export const PatientFactory = {
       // Names
       lastName: input.lastName.trim(),
       firstName: input.firstName.trim(),
-      lastName2: input.lastName2?.trim() || null,
+      lastName2: input.lastName2?.trim(),
 
       // Identity
-      idType: input.idType?.trim() || null,
-      idTypeNo: input.idTypeNo?.trim() || null,
+      idType: input.idType?.trim(),
+      idTypeNo: input.idTypeNo?.trim(),
 
-      // Dates — NOW SAFE
+      // Dates
       birthDay: parseDate(input.birthDay),
       registDate: parseDate(input.registDate),
 
       // Contact
-      phone1: input.phone1?.trim() || null,
-      phone2: input.phone2?.trim() || null,
-      email: input.email?.trim() || null,
-      address: input.address?.trim() || null,
-      occupation: input.occupation?.trim() || null,
-      insurance1: input.insurance1?.trim() || null,
+      phone1: input.phone1?.trim(),
+      phone2: input.phone2?.trim(),
+      email: input.email?.trim(),
+      address: input.address?.trim(),
+      occupation: input.occupation?.trim(),
+      insurance1: input.insurance1?.trim(),
 
       // Guardian
-      gName: input.gName?.trim() || null,
-      gPhone1: input.gPhone1?.trim() || null,
-      gPhone2: input.gPhone2?.trim() || null,
-      gRelation: input.gRelation?.trim() || null,
+      gName: input.gName?.trim(),
+      gPhone1: input.gPhone1?.trim(),
+      gPhone2: input.gPhone2?.trim(),
+      gRelation: input.gRelation?.trim(),
 
       // Others
-      gender: input.gender || null,
-      bloodType: input.bloodType || null,
-      marital: input.marital || null,
-      religion: input.religion || null,
-      referral: input.referral || null,
+      gender: input.gender,
+      bloodType: input.bloodType,
+      marital: input.marital,
+      religion: input.religion,
+      referral: input.referral,
     });
   },
 
@@ -65,9 +58,9 @@ export const PatientFactory = {
     if (!model) return null;
 
     const data = model.get({ plain: true });
-
-    // Ensure all dates are real Date objects
-    const ensureDate = (val) => (val ? new Date(val) : null);
+    
+    // Convert date strings to Date objects
+    const ensureDate = (val) => val ? new Date(val) : null;
     data.birthDay = ensureDate(data.birthDay);
     data.registDate = ensureDate(data.registDate);
     data.createdAt = ensureDate(data.createdAt);

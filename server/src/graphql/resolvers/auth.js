@@ -1,14 +1,24 @@
 import { AuthService, TokenService } from "../../domain/auth/index.js";
 import { GraphQLError } from "graphql";
 
-// ← THIS WAS MISSING - CREATE THE INSTANCE!
 const authService = new AuthService();
 
 export default {
   Query: {
     me: async (_, __, { user }) => {
       if (!user) throw new GraphQLError("Unauthorized", { extensions: { code: "UNAUTHORIZED" } });
-      return user;
+      
+      // Return user with proper GraphQL serialization
+      return {
+        id: String(user.id),
+        userName: user.userName,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        fullName: user.fullName,
+        role: user.role,
+        isActive: user.isActive
+      };
     },
   },
 

@@ -149,7 +149,17 @@ app.use(
       try {
         const payload = TokenService.verifyAccessToken(token);
         user = await authService.me(payload.userId);
-        console.log("Authenticated user:", user?.email);
+        // console.log("CONTEXT - User loaded from token:", user);
+        // console.log("CONTEXT - User keys:", Object.keys(user));
+        // console.log("CONTEXT - User properties:");
+        // console.log("  - id:", user?.id);
+        // console.log("  - userName:", user?.userName);
+        // console.log("  - email:", user?.email);
+        // console.log("  - firstName:", user?.firstName);
+        // console.log("  - lastName:", user?.lastName);
+        // console.log("  - fullName:", user?.fullName);
+        // console.log("  - role:", user?.role);
+        // console.log("  - isActive:", user?.isActive);
       } catch (error) {
         // Token verification failed - silent fail, let directives handle it
         console.log("Token verification failed:", error.message);
@@ -257,11 +267,11 @@ const startServer = async () => {
     app.listen(PORT, HOST, () => {
       console.log(`Server running at http://${LAN_IP}:${PORT}/graphql`);
       console.log(`FULL PLAYGROUND → http://${LAN_IP}:${PORT}/playground`);
-      console.log(`Authentication endpoints available:`);
-      console.log(`  - Register: POST /graphql`);
-      console.log(`  - Login: POST /graphql`);
-      console.log(`  - Refresh: POST /graphql`);
-      console.log(`  - Logout: POST /graphql`);
+      // console.log(`Authentication endpoints available:`);
+      // console.log(`  - Register: POST /graphql`);
+      // console.log(`  - Login: POST /graphql`);
+      // console.log(`  - Refresh: POST /graphql`);
+      // console.log(`  - Logout: POST /graphql`);
       if (isLAN) {
         console.log(`LAN access: http://${LAN_IP}:${PORT}/playground`);
       }
