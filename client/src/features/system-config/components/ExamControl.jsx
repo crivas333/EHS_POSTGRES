@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 import ApplicationFieldsTable from "./ApplicationFieldsTable";
 import ConfigForm from "./ConfigForm";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 import { getFieldCollections, mapLabelToFieldType } from "@/services/configService";
 import ConfirmationDialog from "./ConfirmationDialog";
 

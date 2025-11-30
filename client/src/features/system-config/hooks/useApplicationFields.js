@@ -1,7 +1,7 @@
 // hooks/useApplicationFields.ts
 import { useQuery } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
-import { GET_APPLICATIONSFIELDS } from "@/api/graphql/systemconfig";
+import { myclient } from "@/services/graphql-client/myclient";
+import { GET_APPLICATIONSFIELDS } from "@/services/graphql/systemconfig";
 
 async function fetchApplicationFields() {
   const { getApplicationFields } = await myclient.request(GET_APPLICATIONSFIELDS);

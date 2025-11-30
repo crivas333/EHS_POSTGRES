@@ -1,7 +1,7 @@
 // src/features/patient/hooks/useSearchCombined.js
 import { useState, useCallback, useRef } from "react";
-import { myclient } from "@/graphqlClient/myclient";
-import { SEARCH_COMBINED } from "@/api/graphql/patient";
+import { myclient } from "@/services/graphql-client/myclient";
+import { SEARCH_COMBINED } from "@/services/graphql/patient";
 
 const PAGE_SIZE = 25;
 

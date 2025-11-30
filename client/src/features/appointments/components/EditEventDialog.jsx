@@ -15,7 +15,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
 
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 //import AsyncSelectForFullCalendar from "@/components/patient/patientSearch/AsyncSelectForFullCalendar";
 //import AsyncSelectForFullCalendar from "@/components/patient/patientSearch/AsyncSelectModalDialog.jsx";
 import AsyncSelectModalDialog from "@/features/patient/components/patientSearch/AsyncSelectModalDialog";
@@ -23,9 +23,9 @@ import AsyncSelectModalDialog from "@/features/patient/components/patientSearch/
 
 import * as appointmentService from "@/services/configService";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
-import { validateAppointment } from "@/utils/validators";
-import { useReusableFormAppointment } from "@/components/shared/ui/useReusableFormAppointment";
-import { ReusableForm } from "@/components/shared/ui/useReusableForm";
+import { validateAppointment } from "@/common/utils/validators";
+import { useReusableFormAppointment } from "@/common/components/shared/ui/useReusableFormAppointment";
+import { ReusableForm } from "@/common/components/shared/ui/useReusableForm";
 
 // Styled component for hiding text on small screens
 const Span = styled("span", {

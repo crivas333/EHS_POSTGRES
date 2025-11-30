@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { usePatientStore } from "@/state/zustand/ZustandStore.js";
 import { usePatientForm } from "../hooks/usePatientForm.js";
-import PatientTabFormLayout from "@/features/patient/shared/PatientTabFormLayout.jsx";
-import { initialPatientValues } from "@/utils/patientFormDefaults.js";
+import PatientTabFormLayout from "@/features/patient/components/layout/PatientTabFormLayout.jsx";
+import { initialPatientValues } from "@/common/utils/patientFormDefaults.js";
 
 import UpdatePatientTab1 from "./UpdatePatientTab1.jsx";
 import UpdatePatientTab2 from "./UpdatePatientTab2.jsx";

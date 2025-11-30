@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import {
   useReusableForm,
   ReusableForm,
-} from "@/components/shared/ui/useReusableForm";
+} from "@/common/components/shared/ui/useReusableForm";
 import {
   Button,
   Dialog,

@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
-import { formatDate } from "@/utils/dateUtils";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
+import { formatDate } from "@/common/utils/dateUtils";
 
 const MyBox = styled("div")(({ theme }) => ({
   display: "flex",

@@ -1,6 +1,6 @@
 // src/hooks/usePatientForm.jsx
 import { useState, useCallback } from "react";
-import { validatePatient } from "@/utils/validatorsPatient.js";
+import { validatePatient } from "@/common/utils/validatorsPatient.js";
 
 /**
  * usePatientForm

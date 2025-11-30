@@ -8,15 +8,15 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import esLocale from "date-fns/locale/es";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./graphqlClient/TSreactQueryClient";
+import { queryClient } from "./services/graphql-client/TSreactQueryClient";
 import { GlobalProvider } from "@/state/context/GlobalState.jsx";
 import { ThemeModeProvider } from "@/state/context/ThemeModeContext.jsx";
 
 import { useAuthStore } from "@/state/zustand/ZustandStore";
-import { myclient } from "@/graphqlClient/myclient";
-import { ME } from "@/api/graphql/auth";
+import { myclient } from "@/services/graphql-client/myclient";
+import { ME } from "@/services/graphql/auth";
 
-import Notifier from "./components/shared/notification/Notifier.jsx";
+import Notifier from "./common/components/shared/notification/Notifier.jsx";
 import App from "./App.jsx";
 
 // Initialize auth on app start

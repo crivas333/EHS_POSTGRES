@@ -3,7 +3,7 @@
 // ===============================
 
 // 🧬 API (GraphQL Queries / Mutations)
-export * from "../../api/graphql/patient";
+export * from "../../services/graphql/patient";
 
 // 🪝 Hooks
 export * from "./hooks/usePatientSearch";
@@ -17,7 +17,7 @@ export * from "./hooks/usePatientActions";
 // export * from "./store";
 
 // 📄 Shared Layout
-export { default as PatientTabFormLayout } from "./shared/PatientTabFormLayout.jsx";
+export { default as PatientTabFormLayout } from "./components/layout/PatientTabFormLayout.jsx";
 
 // 📦 UI Components
 export { default as PatientSummary } from "./ui/PatientSummary";

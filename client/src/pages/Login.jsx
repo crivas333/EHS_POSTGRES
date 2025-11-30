@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Navigate } from "react-router-dom";
 
-import { myclient } from "@/graphqlClient/myclient";
-import { LOGIN, REGISTER, REFRESH_TOKEN } from "@/api/graphql/auth";
+import { myclient } from "@/services/graphql-client/myclient";
+import { LOGIN, REGISTER, REFRESH_TOKEN } from "@/services/graphql/auth";
 import { SignInForm } from "@/features/auth/components/SignInForm.jsx";
 import { SignUpForm } from "@/features/auth/components/SignUpForm.jsx";
 
 import { useAuthStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/components/shared/notification/Notify";
+import { notify } from "@/common/components/shared/notification/Notify";
 
 const setAuthToken = (token) => {
   myclient.setHeader("Authorization", token ? `Bearer ${token}` : "");

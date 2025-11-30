@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
-import { GET_ENCOUNTERS_BY_PATIENT_ID } from "@/api/graphql/encounters";
+import { myclient } from "@/services/graphql-client/myclient";
+import { GET_ENCOUNTERS_BY_PATIENT_ID } from "@/services/graphql/encounters";
 
 /* ============================================================================
    Optimized React Query Hook: Fetch encounters for a patient

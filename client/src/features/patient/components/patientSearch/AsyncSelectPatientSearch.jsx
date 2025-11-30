@@ -3,8 +3,8 @@ import React, { useState, forwardRef, useImperativeHandle, useCallback } from "r
 import { AsyncPaginate } from "react-select-async-paginate";
 import { useTheme } from "@mui/material/styles";
 
-import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
-import { myclient } from "@/graphqlClient/myclient";
+import { SEARCH_PATIENT_BY_ID } from "@/services/graphql/patient";
+import { myclient } from "@/services/graphql-client/myclient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
 import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
 import { getSelectStyles } from "@/theme/selectStyles";

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./state/zustand/ZustandStore";
 import Login from "./pages/Login.jsx";
 import Pages from "./pages";
-import LoadingScreen from "@/components/shared/ui/LoadingScreen";
+import LoadingScreen from "@/common/components/shared/ui/LoadingScreen";
 
 function App() {
   const { isAuth, isLoading } = useAuthStore();

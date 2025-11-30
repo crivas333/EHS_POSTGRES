@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import AddEventDialogAppo from "./AddEventDialog";
-import GlobalFilter from "../../../components/shared/table/GlobalFilter";
+import GlobalFilter from "../../../common/components/shared/table/GlobalFilter";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 
 import { useSearchStore } from "@/state/zustand/ZustandStore";
 

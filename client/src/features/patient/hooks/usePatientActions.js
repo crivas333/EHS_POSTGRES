@@ -1,13 +1,13 @@
 // src/features/patient/hooks/usePatientActions.js
 import { useMutation } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 import {
   CREATE_PATIENT,
   UPDATE_PATIENT,
   DELETE_PATIENT,
-} from "@/api/graphql/patient";
+} from "@/services/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/components/shared/notification/Notify";
+import { notify } from "@/common/components/shared/notification/Notify";
 
 export function usePatientActions() {
   const setCurrentPatient = usePatientStore((state) => state.setCurrentPatient);

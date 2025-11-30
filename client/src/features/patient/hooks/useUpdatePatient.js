@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
-import { UPDATE_PATIENT } from "../../../api/graphql/patient";
+import { myclient } from "@/services/graphql-client/myclient";
+import { UPDATE_PATIENT } from "../../../services/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/components/shared/notification/Notify";
+import { notify } from "@/common/components/shared/notification/Notify";
 
 async function updateHelper({ variables }) {
   const res = await myclient.request(UPDATE_PATIENT, variables);

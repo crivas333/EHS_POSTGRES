@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { usePatientForm } from "../hooks/usePatientForm.js";
-import PatientTabFormLayout from "@/features/patient/shared/PatientTabFormLayout.jsx";
-import { initialPatientValues } from "@/utils/patientFormDefaults.js";
+import PatientTabFormLayout from "@/features/patient/components/layout/PatientTabFormLayout.jsx";
+import { initialPatientValues } from "@/common/utils/patientFormDefaults.js";
 
 import NewPatientTab1 from "./NewPatientTab1.jsx";
 import NewPatientTab2 from "./NewPatientTab2.jsx";

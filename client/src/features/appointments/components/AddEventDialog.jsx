@@ -17,16 +17,16 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled } from "@mui/material/styles";
 import { useQueryClient } from "@tanstack/react-query";
 
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 //import AsyncSelectForFullCalendar from "@/components/patient/patientSearch/AsyncSelectForFullCalendar";
 //import AsyncSelectForFullCalendar from "@/components/patient/patientSearch/AsyncSelectModalDialog.jsx";
 import AsyncSelectModalDialog from "@/features/patient/components/patientSearch/AsyncSelectModalDialog";
 
 import * as appointmentService from "@/services/configService";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
-import { validateAppointment } from "@/utils/validators";
-import { useReusableFormAppointment } from "@/components/shared/ui/useReusableFormAppointment";
-import { ReusableForm } from "@/components/shared/ui/useReusableForm";
+import { validateAppointment } from "@/common/utils/validators";
+import { useReusableFormAppointment } from "@/common/components/shared/ui/useReusableFormAppointment";
+import { ReusableForm } from "@/common/components/shared/ui/useReusableForm";
 
 // Hide button text on small screens
 const Span = styled("span", {

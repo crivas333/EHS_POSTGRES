@@ -9,8 +9,8 @@ import {
   UPDATE_APPOINTMENT,
   DELETE_APPOINTMENT,
   GET_APPOINTMENTS_BY_TIMEFRAME,
-} from "@/api/graphql/appointments";
-import { myclient } from "@/graphqlClient/myclient";
+} from "@/services/graphql/appointments";
+import { myclient } from "@/services/graphql-client/myclient";
 import { useSearchStore } from "@/state/zustand/ZustandStore";
 //import { defaultEvent } from "@/helpers/defaultEvent";
 import { statusToColor } from "@/features/appointments/statusToColor";

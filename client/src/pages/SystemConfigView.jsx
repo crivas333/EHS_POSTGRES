@@ -4,17 +4,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 import {
   GET_APPLICATIONSFIELDS,
   ADD_APPLICATIONFIELDS,
   UPDATE_APPLICATIONFIELDS,
   DELETE_APPLICATIONFIELDS,
-} from "@/api/graphql/systemconfig";
+} from "@/services/graphql/systemconfig";
 
-import EncounterControl from "@/features/systemConfig/components/EncounterControl";
-import ExamControl from "@/features/systemConfig/components/ExamControl";
-import AppointmentControl from "@/features/systemConfig/components/AppointmentControl";
+import EncounterControl from "@/features/system-config/components/EncounterControl";
+import ExamControl from "@/features/system-config/components/ExamControl";
+import AppointmentControl from "@/features/system-config/components/AppointmentControl";
 //import { useTheme } from "@mui/material/styles"; // ✅ Access theme
 
 export default function SystemConfig() {

@@ -1,9 +1,9 @@
 // client/src/hooks/useLogout.js — FINAL VERSION
 import { useMutation } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
-import { LOGOUT } from "@/api/graphql/auth";
+import { myclient } from "@/services/graphql-client/myclient";
+import { LOGOUT } from "@/services/graphql/auth";
 import { useAuthStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/components/shared/notification/Notify";
+import { notify } from "@/common/components/shared/notification/Notify";
 
 const logoutHelper = async () => {
   await myclient.request(LOGOUT);

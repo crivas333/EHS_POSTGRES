@@ -2,29 +2,30 @@ import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 import ApplicationFieldsTable from "./ApplicationFieldsTable";
 import ConfigForm from "./ConfigForm";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 import { getFieldCollections, mapLabelToFieldType } from "@/services/configService";
 import ConfirmationDialog from "./ConfirmationDialog";
 
-export default function EncounterControl({
+export default function AppointmentControl({
   applicationFields,
   addField,
   updateField,
   deleteField,
 }) {
-  const [chosenField, setChosenField] = useState("Tipo de Visita");
+  const [chosenField, setChosenField] = useState("Tipo de Cita");
   const [editing, setEditing] = useState(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [pendingValue, setPendingValue] = useState(null);
 
-  const field_type = mapLabelToFieldType("encounter", chosenField);
+  const fieldType = mapLabelToFieldType("appointment", chosenField);
 
-  const encounterFields = applicationFields.filter(
-    (item) => item.field_view === "encounterView" && item.field_type === field_type
+  const appFields = applicationFields.filter(
+    (item) => item.fieldView === "appointmentView" && item.fieldType === fieldType
   );
 
+  // Confirmation dialog triggers
   const handleEditClick = (field) => {
     setPendingAction("edit");
     setPendingValue(field);
@@ -53,38 +54,41 @@ export default function EncounterControl({
 
   return (
     <Grid container spacing={3}>
+      {/* Dropdown to choose which set of fields to configure */}
       <Grid size={12}>
         <ReusableControls.CustomSelect
           name="cfgCustData"
-          label="Configuración de Campos de Encuentros"
+          label="Configuración de Campos de Citas"
           value={chosenField}
           onChange={(e) => setChosenField(e.target.value)}
-          options={getFieldCollections("encounter")}
+          options={getFieldCollections("appointment")}
         />
       </Grid>
 
+      {/* Table showing the current fields */}
       <Grid size={12}>
         <ApplicationFieldsTable
-          appFields={encounterFields}
+          appFields={appFields}
           editRow={handleEditClick}
           deleteUser={handleDeleteClick}
         />
       </Grid>
 
+      {/* Single Form for Add/Edit with inline validation */}
       <Grid size={12}>
         <ConfigForm
           mode={editing ? "edit" : "add"}
-          initialValue={editing?.field_data || ""}
-          existingValues={encounterFields.map((f) => f.field_data)}
+          initialValue={editing?.fieldData || ""}
+          existingValues={appFields.map((f) => f.fieldData)}
           onSubmit={async (value) => {
             if (editing) {
-              await updateField.mutateAsync({ id: editing.id, field_data: value });
+              await updateField.mutateAsync({ id: editing.id, fieldData: value });
               setEditing(null);
             } else {
               await addField.mutateAsync({
-                field_view: "encounterView",
-                field_type,
-                field_data: value,
+                fieldView: "appointmentView",
+                fieldType,
+                fieldData: value,
               });
             }
           }}
@@ -92,6 +96,7 @@ export default function EncounterControl({
         />
       </Grid>
 
+      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={dialogOpen}
         title={pendingAction === "delete" ? "Confirmar borrado" : "Confirmar edición"}
@@ -106,5 +111,3 @@ export default function EncounterControl({
     </Grid>
   );
 }
-
-

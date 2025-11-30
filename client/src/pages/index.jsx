@@ -12,7 +12,7 @@ import AppoitmentsView from "./AppointmentsView.jsx";
 import ReportsView from "./ReportsView.jsx";
 import SystemConfigView from "./SystemConfigView.jsx";
 
-import { useApplicationFields } from "@/features/systemConfig/hooks/useApplicationFields"; // ✅ new hook
+import { useApplicationFields } from "@/features/system-config/hooks/useApplicationFields"; // ✅ new hook
 //import OldDashboard from "@/components/dashboard/db1";
 import EncounterDashboard from "../features/encounters/dashboard/EncounterDashboard.jsx";
 

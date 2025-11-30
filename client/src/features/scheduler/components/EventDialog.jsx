@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls.js";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls.js";
 import {
   useReusableForm,
   ReusableForm,
-} from "@/components/shared/ui/useReusableForm.jsx";
+} from "@/common/components/shared/ui/useReusableForm.jsx";
 import * as appointmentService from "@/services/configService";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";

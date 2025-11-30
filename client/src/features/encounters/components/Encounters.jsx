@@ -10,14 +10,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 import {
   GET_ENCOUNTERS_BY_PATIENT_ID,
   SAVE_ENCOUNTER,
-} from "@/api/graphql/encounters";
+} from "@/services/graphql/encounters";
 //import { UPDATE_APPOINTMENT_STATUS } from "@/features/encounters/api/gqlQueries_encounters";
 import { useEncounterForm } from "@/hooks/useEncounterForm";
-import ReusableControls from "@/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
 
 export default function Encounter({ appointmentId, patientId }) {
   const queryClient = useQueryClient();

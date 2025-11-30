@@ -5,7 +5,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 import EventDialog from "./EventDialog";
 import { statusToColor } from "@/features/scheduler/statusToColor";
 import { defaultEvent } from "@/features/scheduler/defaultEvent";
@@ -15,7 +15,7 @@ import {
   ADD_APPOINTMENT,
   UPDATE_APPOINTMENT,
   DELETE_APPOINTMENT,
-} from "@/api/graphql/fullCalendar";
+} from "@/services/graphql/fullCalendar";
 
 
 

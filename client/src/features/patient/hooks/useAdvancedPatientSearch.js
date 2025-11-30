@@ -1,8 +1,8 @@
 // src/features/patient/hooks/useAdvancedPatientSearch.js
 import { useState, useCallback } from "react";
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 //import { SEARCH_PATIENTS_ADVANCED } from "@/features/patient/api/gqlQueries_patient";
-import { SEARCH_PATIENT_BY_NAME } from "@/api/graphql/patient";
+import { SEARCH_PATIENT_BY_NAME } from "@/services/graphql/patient";
 
 const PAGE_SIZE = 25;
 

@@ -6,9 +6,9 @@ import CssBaseline from "@mui/material/CssBaseline";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 
-import AppBar from "@/components/shared/navigation/AppBar";
-import DrawerLeft from "@/components/shared/navigation/DrawerLeft";
-import DrawerRight from "@/components/shared/navigation/DrawerRight";
+import AppBar from "@/common/components/shared/navigation/AppBar";
+import DrawerLeft from "@/common/components/shared/navigation/DrawerLeft";
+import DrawerRight from "@/common/components/shared/navigation/DrawerRight";
 import Main from "@/layouts/Main";
 
 export default function SiteLayout({ children }) {

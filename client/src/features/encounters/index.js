@@ -26,11 +26,11 @@ export { default as RefractionModule } from "./modules/RefractionModule";
 export { MODULE_CONFIG } from "./config/moduleConfig";
 
 // API Queries
-export * from "../../api/graphql/encounters";
+export * from "../../services/graphql/encounters";
 
 // Legacy/Additional Components (if needed)
 export { default as Encounters } from "./components/Encounters";
 export { default as DashboardTextField } from "./components/DashboardTextField";
 export { default as EncounterRow } from "./components/EncounterRow";
-export { default as PaginationActions } from "../../components/shared/table/PaginationActions";
+export { default as PaginationActions } from "../../common/components/shared/table/PaginationActions";
 export { default as TableFiltered } from "./components/TableFiltered";

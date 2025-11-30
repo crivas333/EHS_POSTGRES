@@ -1,9 +1,9 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@mui/material";
-import PatientTabFormLayout from "@/features/patient/shared/PatientTabFormLayout.jsx";
+import PatientTabFormLayout from "@/features/patient/components/layout/PatientTabFormLayout.jsx";
 import { useReusableFormGPT } from "@/hooks/useReusableFormGPT.js";
-import { initialPatientValues } from "@/utils/patientFormDefaults.js";
+import { initialPatientValues } from "@/common/utils/patientFormDefaults.js";
 
 // Unified Tab components
 import PatientTab1 from "./PatientTab1.jsx";

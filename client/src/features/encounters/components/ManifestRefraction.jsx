@@ -18,7 +18,7 @@ import DashboardTextField from "@/features/encounters/components/DashboardTextFi
 
 import { useReusableFormGPT } from "@/hooks/useReusableFormGPT";
 import { ReusableFormGPT } from "@/hooks/ReusableFormGPT";
-import { validateManifestRefraction } from "@/utils/validatorsEyeTest";
+import { validateManifestRefraction } from "@/common/utils/validatorsEyeTest";
 import { useEncountersMR } from "@/features/encounters/hooks/useEncountersMR";
 
 /**

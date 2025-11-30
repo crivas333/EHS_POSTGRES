@@ -10,8 +10,8 @@ import React, {
 import { AsyncPaginate } from "react-select-async-paginate";
 import { useDebounce } from "use-debounce"; // ← ¡La magia!
 
-import { myclient } from "@/graphqlClient/myclient";
-import { SEARCH_PATIENT_BY_ID } from "@/api/graphql/patient";
+import { myclient } from "@/services/graphql-client/myclient";
+import { SEARCH_PATIENT_BY_ID } from "@/services/graphql/patient";
 import { usePatientSearch } from "@/features/patient/hooks/usePatientSearch";
 
 import "./asyncSelect.css";

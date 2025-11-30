@@ -1,6 +1,6 @@
 // client/src/modules/encounters/hooks/useSaveRefraction.js
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { myclient } from "@/graphqlClient/myclient";
+import { myclient } from "@/services/graphql-client/myclient";
 
 // --- Define your mutation query ---
 const SAVE_REFRACTION_MUTATION = `
