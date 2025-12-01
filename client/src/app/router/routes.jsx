@@ -1,73 +1,35 @@
-import { lazy } from 'react';
-import LazyRoute from './LazyRoute';
+// src/app/router/routes.jsx
+import { lazy } from "react";
+import LazyRoute from "./LazyRoute";
 
-// Lazy load all pages - MATCH YOUR OLD PAGES COMPONENTS
-const PatientView = lazy(() => import('@pages/PatientView'));
-const PatientTablePage = lazy(() => import('@pages/PatientTablePage'));
-const CalendarView = lazy(() => import('@pages/CalendarView'));
-const AppointmentsView = lazy(() => import('@pages/AppointmentsView'));
-const EncounterDashboard = lazy(() => import('@features/encounters/dashboard/EncounterDashboard'));
-const SystemConfigView = lazy(() => import('@pages/SystemConfigView'));
-const ReportsView = lazy(() => import('@pages/ReportsView'));
-const Login = lazy(() => import('@pages/Login'));
-const NotFound = lazy(() => import('@pages/NotFound'));
+// EAGER: Core pages → INSTANT navigation
+import PatientView from "@pages/PatientView";
+import PatientTablePage from "@pages/PatientTablePage";
+import CalendarView from "@pages/CalendarView";
+import AppointmentsView from "@pages/AppointmentsView";
+import EncounterDashboard from "@features/encounters/dashboard/EncounterDashboard";
+import SystemConfigView from "@pages/SystemConfigView";
+import ReportsView from "@pages/ReportsView";
 
-// Public routes
+// LAZY: Only login + 404
+const Login = lazy(() => import("@pages/Login"));
+const NotFound = lazy(() => import("@pages/NotFound"));
+
 export const publicRoutes = [
   {
-    path: '/login',
+    path: "/login",
     element: <LazyRoute component={Login} />,
   },
 ];
 
-// Protected routes - EXACTLY MATCH YOUR DRAWER CONFIG PATHS
 export const protectedRoutes = [
-  // Patient Management Routes (from your drawer config)
-  {
-    path: '/Paciente',
-    element: <LazyRoute component={PatientView} />,
-    title: 'Ingreso de Pacientes',
-  },
-  {
-    path: '/PacienteTabla', 
-    element: <LazyRoute component={PatientTablePage} />,
-    title: 'Tabla de Pacientes',
-  },
-  {
-    path: '/Agendamiento',
-    element: <LazyRoute component={CalendarView} />, // This was CalendarView in your old code
-    title: 'Agendamiento',
-  },
-  {
-    path: '/Citas',
-    element: <LazyRoute component={AppointmentsView} />, // This was AppointmentsView in your old code
-    title: 'Citas del Día',
-  },
-  
-  // Encounters Routes (from your drawer config)
-  {
-    path: '/EncounterDashboard',
-    element: <LazyRoute component={EncounterDashboard} />,
-    title: 'Consulta',
-  },
-  
-  // Configuration Routes (from your drawer config)
-  {
-    path: '/Config',
-    element: <LazyRoute component={SystemConfigView} />,
-    title: 'Configuración',
-  },
-  
-  // Additional routes from your old Pages component
-  {
-    path: '/Informes',
-    element: <LazyRoute component={ReportsView} />,
-    title: 'Informes',
-  },
+  { index: true, element: <PatientView /> },
+  { path: "Paciente", element: <PatientView /> },
+  { path: "PacienteTabla", element: <PatientTablePage /> },
+  { path: "Agendamiento", element: <CalendarView /> },
+  { path: "Citas", element: <AppointmentsView /> },
+  { path: "EncounterDashboard", element: <EncounterDashboard /> },
+  { path: "Config", element: <SystemConfigView /> },
+  { path: "Informes", element: <ReportsView /> },
+  { path: "*", element: <LazyRoute component={NotFound} /> },
 ];
-
-// Utility function to get route title
-export const getRouteTitle = (pathname) => {
-  const route = protectedRoutes.find(route => route.path === pathname);
-  return route?.title || 'EHS System';
-};

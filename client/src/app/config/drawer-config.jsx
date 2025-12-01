@@ -1,17 +1,17 @@
-//src/app/config/drawer-config.js
+// src/app/config/drawer-config.js
 import {
   PersonAdd,
   EventAvailable,
   Today,
-  Female,
   Biotech,
   Settings,
+  Assessment,
 } from "@mui/icons-material";
 
 const drawerConfig = [
   {
     title: "GESTIÓN DE PACIENTES",
-    icon: PersonAdd, // Use component reference, not JSX
+    icon: PersonAdd,
     stateKey: "openPatient",
     defaultOpen: true,
     items: [
@@ -22,20 +22,31 @@ const drawerConfig = [
     ],
   },
   {
-    title: "ENCOUNTERS", 
-    icon: Female,
-    stateKey: "openGyn",
+    title: "CONSULTAS",
+    icon: Biotech,
+    stateKey: "openEncounters",
     defaultOpen: false,
     items: [
       { to: "/EncounterDashboard", label: "Consulta", icon: Biotech },
     ],
   },
   {
-    title: "MÓDULO CONFIGURACIÓN",
+    title: "CONFIGURACIÓN",
     icon: Settings,
-    stateKey: "openConfig", 
+    stateKey: "openConfig",
     defaultOpen: false,
-    items: [{ to: "/Config", label: "Configuración", icon: Settings }],
+    items: [
+      { to: "/Config", label: "Configuración", icon: Settings },
+    ],
+  },
+  {
+    title: "INFORMES",
+    icon: Assessment,
+    stateKey: "openReports",
+    defaultOpen: false,
+    items: [
+      { to: "/Informes", label: "Informes", icon: Assessment },
+    ],
   },
 ];
 
