@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Box, Grid, Button, ButtonGroup } from "@mui/material";
 
@@ -59,7 +60,7 @@ export default function PatientView() {
       <Grid container direction="column" spacing={2}>
 
         {/* Patient Search */}
-        <Grid item>
+        <Grid >
           <AsyncSelectPaginate
             ref={selectRef}
             cacheUniqs={[paginationCacheKey]}   // 👈 NEW
@@ -67,7 +68,7 @@ export default function PatientView() {
         </Grid>
 
         {/* Actions */}
-        <Grid item>
+        <Grid >
           <ButtonGroup size="small" variant="contained">
             <Button
               color="primary"
@@ -96,7 +97,7 @@ export default function PatientView() {
         </Grid>
 
         {/* Forms */}
-        <Grid item>
+        <Grid>
           {action === SEARCH && <DisplayPatientTabForm />}
           {action === CREATE && (
             <NewPatientTabForm

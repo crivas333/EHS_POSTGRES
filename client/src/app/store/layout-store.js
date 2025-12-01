@@ -1,175 +1,151 @@
-//src/app/store/layout-store.js
+// src/app/store/layout-store.js
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import drawerConfig from '@app/config/drawer-config';
 
-// Initialize drawer sections state from config
-const initialDrawerSections = drawerConfig.reduce((acc, section) => {
-  acc[section.stateKey] = section.defaultOpen || false;
+// Importa AMBAS configuraciones
+import leftDrawerConfig from '@app/config/drawer-config';
+import rightDrawerConfig from '@app/config/drawer-right-config';
+
+// Combina todas las secciones (izquierda + derecha)
+const allDrawerConfigs = [...leftDrawerConfig, ...rightDrawerConfig];
+
+const initialDrawerSections = allDrawerConfigs.reduce((acc, section) => {
+  acc[section.stateKey] = section.defaultOpen ?? false;
   return acc;
 }, {});
 
 export const useLayoutStore = create(
   persist(
     (set, get) => ({
-      // Drawer visibility states
+      // Drawer visibility
       drawerLeftOpen: false,
       drawerRightOpen: false,
-      
-      // Drawer sections collapse/expand states
+
+      // Estado de colapso/expansión de TODAS las secciones (izq + der)
       drawerSections: initialDrawerSections,
-      
-      // Drawer actions
-      setDrawerLeftOpen: (open) => set({ drawerLeftOpen: open }),
-      setDrawerRightOpen: (open) => set({ drawerRightOpen: open }),
-      
-      toggleDrawerLeft: () => set((state) => ({ 
-        drawerLeftOpen: !state.drawerLeftOpen 
-      })),
-      
-      toggleDrawerRight: () => set((state) => ({ 
-        drawerRightOpen: !state.drawerRightOpen 
-      })),
-      
-      closeBothDrawers: () => set({ 
-        drawerLeftOpen: false, 
-        drawerRightOpen: false 
-      }),
-      
-      closeDrawerLeft: () => set({ drawerLeftOpen: false }),
-      closeDrawerRight: () => set({ drawerRightOpen: false }),
-      
+
+      // === Acciones de visibilidad de drawers ===
+      toggleDrawerLeft: () => set((state) => ({ drawerLeftOpen: !state.drawerLeftOpen })),
+      toggleDrawerRight: () => set((state) => ({ drawerRightOpen: !state.drawerRightOpen })),
+
       openDrawerLeft: () => set({ drawerLeftOpen: true }),
       openDrawerRight: () => set({ drawerRightOpen: true }),
-      
-      // Drawer sections management
-      toggleDrawerSection: (stateKey) => set((state) => ({
-        drawerSections: {
-          ...state.drawerSections,
-          [stateKey]: !state.drawerSections[stateKey],
-        },
-      })),
-      
-      setDrawerSection: (stateKey, isOpen) => set((state) => ({
-        drawerSections: {
-          ...state.drawerSections,
-          [stateKey]: isOpen,
-        },
-      })),
-      
-      expandDrawerSection: (stateKey) => set((state) => ({
-        drawerSections: {
-          ...state.drawerSections,
-          [stateKey]: true,
-        },
-      })),
-      
-      collapseDrawerSection: (stateKey) => set((state) => ({
-        drawerSections: {
-          ...state.drawerSections,
-          [stateKey]: false,
-        },
-      })),
-      
-      expandAllSections: () => {
-        const expandedSections = Object.keys(get().drawerSections).reduce((acc, key) => {
-          acc[key] = true;
-          return acc;
-        }, {});
-        set({ drawerSections: expandedSections });
-      },
-      
-      collapseAllSections: () => {
-        const collapsedSections = Object.keys(get().drawerSections).reduce((acc, key) => {
-          acc[key] = false;
-          return acc;
-        }, {});
-        set({ drawerSections: collapsedSections });
-      },
-      
-      resetDrawerSections: () => set({ 
-        drawerSections: initialDrawerSections 
-      }),
-      
-      // Mobile-specific actions
-      openLeftDrawerMobile: () => set({ 
-        drawerLeftOpen: true, 
-        drawerRightOpen: false 
-      }),
-      
-      openRightDrawerMobile: () => set({ 
-        drawerLeftOpen: false, 
-        drawerRightOpen: true 
-      }),
-      
-      // Bulk actions
-      resetLayout: () => set({
-        drawerLeftOpen: false,
-        drawerRightOpen: false,
-        drawerSections: initialDrawerSections,
-      }),
+
+      closeDrawerLeft: () => set({ drawerLeftOpen: false }),
+      closeDrawerRight: () => set({ drawerRightOpen: false }),
+
+      closeBothDrawers: () => set({ drawerLeftOpen: false, drawerRightOpen: false }),
+
+      // Mobile: solo uno abierto a la vez
+      openLeftDrawerMobile: () => set({ drawerLeftOpen: true, drawerRightOpen: false }),
+      openRightDrawerMobile: () => set({ drawerLeftOpen: false, drawerRightOpen: true }),
+
+      // === Acciones de secciones (colapso/expansión) ===
+      toggleDrawerSection: (stateKey) =>
+        set((state) => ({
+          drawerSections: {
+            ...state.drawerSections,
+            [stateKey]: !state.drawerSections[stateKey],
+          },
+        })),
+
+      setDrawerSection: (stateKey, isOpen) =>
+        set((state) => ({
+          drawerSections: {
+            ...state.drawerSections,
+            [stateKey]: isOpen,
+          },
+        })),
+
+      expandDrawerSection: (stateKey) =>
+        set((state) => ({
+          drawerSections: { ...state.drawerSections, [stateKey]: true },
+        })),
+
+      collapseDrawerSection: (stateKey) =>
+        set((state) => ({
+          drawerSections: { ...state.drawerSections, [stateKey]: false },
+        })),
+
+      expandAllSections: () =>
+        set({
+          drawerSections: Object.keys(get().drawerSections).reduce((acc, key) => {
+            acc[key] = true;
+            return acc;
+          }, {}),
+        }),
+
+      collapseAllSections: () =>
+        set({
+          drawerSections: Object.keys(get().drawerSections).reduce((acc, key) => {
+            acc[key] = false;
+            return acc;
+          }, {}),
+        }),
+
+      resetDrawerSections: () => set({ drawerSections: initialDrawerSections }),
+
+      // Reset completo del layout
+      resetLayout: () =>
+        set({
+          drawerLeftOpen: false,
+          drawerRightOpen: false,
+          drawerSections: initialDrawerSections,
+        }),
     }),
     {
-      name: 'layout-storage',
-      version: 1,
+      name: 'layout-storage-v2',
+      version: 2, // Cambiado a v2 por nueva estructura
       partialize: (state) => ({
-        // Only persist these states
         drawerLeftOpen: state.drawerLeftOpen,
         drawerRightOpen: state.drawerRightOpen,
         drawerSections: state.drawerSections,
       }),
+      // Crucial: asegura compatibilidad si cambias config
       onRehydrateStorage: () => (state) => {
-        // Ensure all sections from current config exist after rehydration
-        if (state) {
-          const currentConfigSections = drawerConfig.reduce((acc, section) => {
-            acc[section.stateKey] = section.defaultOpen || false;
-            return acc;
-          }, {});
-          
-          // Merge persisted state with current config
-          state.drawerSections = {
-            ...currentConfigSections,
-            ...state.drawerSections,
-          };
-        }
+        if (!state) return;
+
+        const currentSections = allDrawerConfigs.reduce((acc, section) => {
+          acc[section.stateKey] = section.defaultOpen ?? false;
+          return acc;
+        }, {});
+
+        // Merge: mantener estados guardados, pero añadir nuevas secciones
+        state.drawerSections = {
+          ...currentSections,
+          ...state.drawerSections,
+        };
       },
     }
   )
 );
 
-// Optional: Custom hooks for common patterns
-export const useDrawerActions = () => {
+// === Hooks auxiliares (opcionales pero muy útiles) ===
+export const useDrawerVisibility = () => {
   const {
+    drawerLeftOpen,
+    drawerRightOpen,
     toggleDrawerLeft,
     toggleDrawerRight,
-    closeBothDrawers,
     openLeftDrawerMobile,
     openRightDrawerMobile,
+    closeBothDrawers,
   } = useLayoutStore();
-  
+
   return {
+    drawerLeftOpen,
+    drawerRightOpen,
     toggleDrawerLeft,
     toggleDrawerRight,
-    closeBothDrawers,
     openLeftDrawerMobile,
     openRightDrawerMobile,
+    closeBothDrawers,
   };
 };
 
-export const useDrawerSectionActions = () => {
-  const {
-    toggleDrawerSection,
-    expandDrawerSection,
-    collapseDrawerSection,
-    expandAllSections,
-    collapseAllSections,
-  } = useLayoutStore();
-  
-  return {
-    toggleDrawerSection,
-    expandDrawerSection,
-    collapseDrawerSection,
-    expandAllSections,
-    collapseAllSections,
-  };
+export const useDrawerSection = (stateKey) => {
+  const isOpen = useLayoutStore((state) => state.drawerSections[stateKey] ?? false);
+  const toggle = useLayoutStore((state) => state.toggleDrawerSection);
+
+  return [isOpen, () => toggle(stateKey)];
 };

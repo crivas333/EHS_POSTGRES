@@ -1,7 +1,6 @@
 // client/src/app/layouts/LayoutDrawerLeft.jsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
-  CssBaseline,
   Drawer,
   Box,
   Divider,
@@ -15,104 +14,78 @@ import {
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { NavLink, useLocation } from "react-router-dom";
+
 import Profile from "@app/components/Profile";
-import drawerConfig from "@app/config/drawer-config"; // Updated import path
+import drawerConfig from "@app/config/drawer-config";
+import { useLayoutStore } from "@app/store/layout-store"; // ← ¡AQUÍ ESTÁ LA MAGIA!
 
-const drawerWidth = 240;
+const DRAWER_WIDTH = 240;
 
-export default function DrawerLeft({
-  window,
-  drawerOpen,
-  onClickHandleDrawerClose,
-  menuButtonRef,
-}) {
-  const location = useLocation();
+export default function LayoutDrawerLeft({ window, menuButtonRef }) {
   const theme = useTheme();
+  const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Initialize open states dynamically from config
-  const initialOpenStates = drawerConfig.reduce((acc, section) => {
-    acc[section.stateKey] = section.defaultOpen;
-    return acc;
-  }, {});
-  const [openStates, setOpenStates] = useState(initialOpenStates);
+  // Zustand state & actions
+  const {
+    drawerLeftOpen,
+    drawerSections,
+    toggleDrawerSection,
+    closeDrawerLeft,
+  } = useLayoutStore();
 
   const firstItemRef = useRef(null);
 
-  const toggle = (key) => {
-    setOpenStates((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Restore focus to menu button on drawer close (mobile only)
+  // Focus first item when mobile drawer opens
   useEffect(() => {
-    if (!drawerOpen && isMobile) {
+    if (drawerLeftOpen && isMobile) {
+      setTimeout(() => firstItemRef.current?.focus(), 100);
+    }
+    if (!drawerLeftOpen && isMobile) {
       menuButtonRef?.current?.focus();
     }
-  }, [drawerOpen, menuButtonRef, isMobile]);
+  }, [drawerLeftOpen, isMobile, menuButtonRef]);
 
-  // Helper function to render icon components
-  const renderIcon = (IconComponent) => {
-    if (!IconComponent) return null;
-    return <IconComponent fontSize="small" sx={{ mr: 2 }} />;
-  };
-
-  const renderNestedItem = (to, label, IconComponent = null, ref = null, autoFocus = false) => (
-    <ListItem disablePadding key={to}>
-      <ListItemButton
-        ref={ref}
-        component={NavLink}
-        to={to}
-        selected={location.pathname === to}
-        onClick={() => {
-          if (isMobile) onClickHandleDrawerClose();
-        }}
-        autoFocus={autoFocus && isMobile}
-        sx={{
-          "&.Mui-selected": {
-            backgroundColor: theme.palette.action.selected,
-          },
-          pl: 4, // Indent nested items
-        }}
-      >
-        {renderIcon(IconComponent)}
-        <ListItemText primary={label} />
-      </ListItemButton>
-    </ListItem>
-  );
+  const renderIcon = (Icon) => Icon && <Icon fontSize="small" sx={{ mr: 2 }} />;
 
   const drawerContent = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "background.paper" }}>
       <Profile />
       <Divider />
-      <List component="nav" sx={{ flex: 1, overflowY: "auto" }}>
-        {drawerConfig.map((section, idx) => (
-          <React.Fragment key={section.title}>
+      <List sx={{ flex: 1, overflowY: "auto" }}>
+        {drawerConfig.map((section, sectionIdx) => (
+          <React.Fragment key={section.stateKey}>
             <ListItem disablePadding>
-              <ListItemButton onClick={() => toggle(section.stateKey)}>
+              <ListItemButton onClick={() => toggleDrawerSection(section.stateKey)}>
                 {renderIcon(section.icon)}
                 <ListItemText primary={section.title} />
-                {openStates[section.stateKey] ? <ExpandLess /> : <ExpandMore />}
+                {drawerSections[section.stateKey] ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
             </ListItem>
-            <Collapse in={openStates[section.stateKey]} timeout="auto" unmountOnExit>
+
+            <Collapse in={drawerSections[section.stateKey]} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                {section.items.map((item, i) =>
-                  renderNestedItem(
-                    item.to,
-                    item.label,
-                    item.icon,
-                    idx === 0 && i === 0 ? firstItemRef : null,
-                    idx === 0 && i === 0
-                  )
-                )}
+                {section.items.map((item, itemIdx) => (
+                  <ListItem key={item.to} disablePadding>
+                    <ListItemButton
+                      ref={sectionIdx === 0 && itemIdx === 0 ? firstItemRef : null}
+                      component={NavLink}
+                      to={item.to}
+                      selected={location.pathname === item.to}
+                      onClick={() => isMobile && closeDrawerLeft()}
+                      sx={{
+                        pl: 4,
+                        "&.Mui-selected": {
+                          bgcolor: "action.selected",
+                          fontWeight: 600,
+                        },
+                      }}
+                    >
+                      {renderIcon(item.icon)}
+                      <ListItemText primary={item.label} />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
               </List>
             </Collapse>
           </React.Fragment>
@@ -121,74 +94,42 @@ export default function DrawerLeft({
     </Box>
   );
 
-  const container = window ? () => window().document.body : undefined;
+  const container = window?.document.body;
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
+    <>
+      {/* Mobile: Temporary Drawer */}
+      <Drawer
+        container={container}
+        variant="temporary"
+        open={isMobile ? drawerLeftOpen : false}
+        onClose={closeDrawerLeft}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", sm: "none" },
+          "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
 
-      {/* ✅ Mobile Drawer (temporary) */}
-      {isMobile ? (
-        <Drawer
-          container={container}
-          variant="temporary"
-          anchor="left"
-          open={drawerOpen}
-          onClose={(event, reason) => {
-            if (reason === "backdropClick" || reason === "escapeKeyDown") {
-              onClickHandleDrawerClose();
-            }
-          }}
-          ModalProps={{ keepMounted: true }}
-          slotProps={{
-            transition: {
-              onEntered: () => {
-                firstItemRef.current?.focus();
-              },
-            },
-            paper: {
-              sx: {
-                width: drawerWidth,
-                boxSizing: "border-box",
-                bgcolor: theme.palette.background.paper,
-                color: theme.palette.text.primary,
-              },
-            },
-          }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box" },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      ) : (
-        /* ✅ Desktop Drawer (persistent) */
-        <Drawer
-          variant="persistent"
-          anchor="left"
-          open={drawerOpen}
-          slotProps={{
-            paper: {
-              sx: {
-                width: drawerWidth,
-                boxSizing: "border-box",
-                position: "relative",
-                borderRight: `1px solid ${theme.palette.divider}`,
-                bgcolor: theme.palette.background.paper,
-                color: theme.palette.text.primary,
-              },
-            },
-          }}
-          sx={{
-            display: { xs: "none", sm: "block" },
-            width: drawerWidth,
-            flexShrink: 0,
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      )}
-    </Box>
+      {/* Desktop: Persistent Drawer */}
+      <Drawer
+        variant="persistent"
+        open={!isMobile && drawerLeftOpen}
+        sx={{
+          display: { xs: "none", sm: "block" },
+          width: DRAWER_WIDTH,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: DRAWER_WIDTH,
+            boxSizing: "border-box",
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </>
   );
 }

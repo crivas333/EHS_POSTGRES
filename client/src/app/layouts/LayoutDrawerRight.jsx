@@ -1,230 +1,175 @@
-//client/src/app/layouts/LayoutDrawerRight.jsx
-import React, { useRef, useEffect } from "react";
+// client/src/app/layouts/LayoutDrawerRight.jsx
+import React, { useEffect, useRef } from "react";
 import {
   Drawer,
   Box,
-  Divider,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useMediaQuery,
-  useTheme,
   Collapse,
+  Divider,
+  Typography,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { NavLink, useLocation } from "react-router-dom";
 
-// Import icons as components
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import MessageIcon from "@mui/icons-material/Message";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import SettingsIcon from "@mui/icons-material/Settings";
+import { useLayoutStore } from "@app/store/layout-store";
+import rightDrawerConfig from "@app/config/drawer-right-config"; // ← Archivo externo
 
-const drawerWidth = 240;
+const DRAWER_WIDTH = 240;
 
-// Right drawer configuration - similar structure to left drawer
-const rightDrawerConfig = [
-  {
-    title: "NOTIFICACIONES",
-    icon: NotificationsIcon,
-    stateKey: "openNotifications",
-    defaultOpen: true,
-    items: [
-      { to: "/notifications", label: "Alertas del Sistema", icon: NotificationsIcon },
-      { to: "/reminders", label: "Recordatorios", icon: NotificationsIcon },
-    ],
-  },
-  {
-    title: "COMUNICACIÓN",
-    icon: MessageIcon,
-    stateKey: "openCommunication", 
-    defaultOpen: false,
-    items: [
-      { to: "/messages", label: "Mensajes", icon: MessageIcon },
-      { to: "/inbox", label: "Bandeja de Entrada", icon: MessageIcon },
-    ],
-  },
-  {
-    title: "CUENTA",
-    icon: AccountCircleIcon,
-    stateKey: "openAccount",
-    defaultOpen: false,
-    items: [
-      { to: "/profile", label: "Perfil de Usuario", icon: AccountCircleIcon },
-      { to: "/settings", label: "Configuración", icon: SettingsIcon },
-      { to: "/preferences", label: "Preferencias", icon: SettingsIcon },
-    ],
-  },
-];
-
-export default function DrawerRight({
-  window,
-  drawerOpen,
-  onClickHandleDrawerClose,
-  menuButtonRef,
-  variant = "persistent",
-  ModalProps = {},
-}) {
-  const location = useLocation();
+export default function LayoutDrawerRight({ window, menuButtonRef }) {
   const theme = useTheme();
+  const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // Initialize open states from config - NOW USED
-  const initialOpenStates = rightDrawerConfig.reduce((acc, section) => {
-    acc[section.stateKey] = section.defaultOpen;
-    return acc;
-  }, {});
-  const [openStates, setOpenStates] = React.useState(initialOpenStates);
+  const {
+    drawerRightOpen,
+    drawerSections,
+    toggleDrawerSection,
+    closeDrawerRight,
+  } = useLayoutStore();
 
   const firstItemRef = useRef(null);
 
-  const toggleSection = (stateKey) => {
-    setOpenStates((prev) => ({ ...prev, [stateKey]: !prev[stateKey] }));
-  };
-
-  // Restore focus to menu button on drawer close (mobile only)
+  // Focus management (mobile)
   useEffect(() => {
-    if (!drawerOpen && isMobile) {
+    if (drawerRightOpen && isMobile) {
+      setTimeout(() => firstItemRef.current?.focus(), 100);
+    }
+    if (!drawerRightOpen && isMobile) {
       menuButtonRef?.current?.focus();
     }
-  }, [drawerOpen, menuButtonRef, isMobile]);
+  }, [drawerRightOpen, isMobile, menuButtonRef]);
 
-  // Helper function to render icon components consistently
-  const renderIcon = (IconComponent) => {
-    if (!IconComponent) return null;
-    return <IconComponent fontSize="small" />;
-  };
-
-  const renderNestedItem = (to, label, IconComponent = null, ref = null, autoFocus = false) => (
-    <ListItem disablePadding key={to}>
-      <ListItemButton
-        ref={ref}
-        component={NavLink}
-        to={to}
-        selected={location.pathname === to}
-        onClick={() => {
-          if (isMobile) onClickHandleDrawerClose();
-        }}
-        autoFocus={autoFocus && isMobile}
-        sx={{
-          "&.Mui-selected": {
-            backgroundColor: theme.palette.action.selected,
-          },
-          pl: 4, // Indent nested items
-        }}
-      >
-        <ListItemIcon>{renderIcon(IconComponent)}</ListItemIcon>
-        <ListItemText primary={label} />
-      </ListItemButton>
-    </ListItem>
-  );
+  const renderIcon = (Icon) => Icon && <Icon fontSize="small" sx={{ minWidth: 40 }} />;
 
   const drawerContent = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Header */}
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
           p: 2,
           borderBottom: `1px solid ${theme.palette.divider}`,
+          bgcolor: "background.paper",
         }}
       >
-        <strong>Panel Lateral</strong>
+        <Typography variant="subtitle1" fontWeight="600">
+          Panel Rápido
+        </Typography>
       </Box>
-      
-      <List component="nav" sx={{ flex: 1, overflowY: "auto", p: 1 }}>
-        {rightDrawerConfig.map((section, idx) => (
-          <React.Fragment key={section.title}>
-            <ListItem disablePadding>
-              <ListItemButton 
-                onClick={() => toggleSection(section.stateKey)}
-                sx={{
-                  borderRadius: 1,
-                  mb: 0.5,
-                }}
-              >
-                <ListItemIcon>
-                  {renderIcon(section.icon)}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={section.title} 
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: 'medium',
+
+      <List sx={{ flex: 1, overflowY: "auto", px: 1, py: 1 }}>
+        {rightDrawerConfig.map((section, sectionIdx) => {
+          const isOpen = drawerSections[section.stateKey] ?? section.defaultOpen;
+
+          return (
+            <React.Fragment key={section.stateKey}>
+              <ListItem disablePadding sx={{ mb: 0.5 }}>
+                <ListItemButton
+                  onClick={() => toggleDrawerSection(section.stateKey)}
+                  sx={{
+                    borderRadius: 1,
+                    bgcolor: isOpen ? "action.hover" : "transparent",
                   }}
-                />
-                {openStates[section.stateKey] ? <ExpandLess /> : <ExpandMore />}
-              </ListItemButton>
-            </ListItem>
-            
-            <Collapse in={openStates[section.stateKey]} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                {section.items.map((item, i) =>
-                  renderNestedItem(
-                    item.to,
-                    item.label,
-                    item.icon,
-                    idx === 0 && i === 0 ? firstItemRef : null,
-                    idx === 0 && i === 0
-                  )
-                )}
-              </List>
-            </Collapse>
-            
-            {idx < rightDrawerConfig.length - 1 && (
-              <Divider sx={{ my: 1 }} />
-            )}
-          </React.Fragment>
-        ))}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    {renderIcon(section.icon)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={section.title}
+                    primaryTypographyProps={{
+                      fontSize: "0.875rem",
+                      fontWeight: "medium",
+                    }}
+                  />
+                  {isOpen ? <ExpandLess /> : <ExpandMore />}
+                </ListItemButton>
+              </ListItem>
+
+              <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {section.items.map((item, itemIdx) => (
+                    <ListItem key={item.to} disablePadding>
+                      <ListItemButton
+                        ref={sectionIdx === 0 && itemIdx === 0 ? firstItemRef : null}
+                        component={NavLink}
+                        to={item.to}
+                        selected={location.pathname === item.to}
+                        onClick={() => isMobile && closeDrawerRight()}
+                        sx={{
+                          pl: 4,
+                          borderRadius: 1,
+                          "&.Mui-selected": {
+                            bgcolor: "primary.main",
+                            color: "primary.contrastText",
+                            "& .MuiListItemIcon-root": { color: "inherit" },
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {renderIcon(item.icon)}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.label}
+                          primaryTypographyProps={{ fontSize: "0.85rem" }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Collapse>
+
+              {sectionIdx < rightDrawerConfig.length - 1 && <Divider sx={{ my: 1 }} />}
+            </React.Fragment>
+          );
+        })}
       </List>
     </Box>
   );
 
-  const container = window ? () => window().document.body : undefined;
+  const container = window?.document.body;
 
   return (
-    <Drawer
-      anchor="right"
-      variant={variant}
-      open={drawerOpen}
-      onClose={onClickHandleDrawerClose}
-      ModalProps={{
-        ...ModalProps,
-        ...(isMobile && {
-          slotProps: {
-            transition: {
-              onEntered: () => {
-                firstItemRef.current?.focus();
-              },
-            },
+    <>
+      {/* Mobile: Temporary */}
+      <Drawer
+        container={container}
+        variant="temporary"
+        anchor="right"
+        open={isMobile && drawerRightOpen}
+        onClose={closeDrawerRight}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", sm: "none" },
+          "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop: Persistent */}
+      <Drawer
+        variant="persistent"
+        anchor="right"
+        open={!isMobile && drawerRightOpen}
+        sx={{
+          display: { xs: "none", sm: "block" },
+          width: DRAWER_WIDTH,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: DRAWER_WIDTH,
+            boxSizing: "border-box",
+            borderLeft: `1px solid ${theme.palette.divider}`,
           },
-        }),
-      }}
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: drawerWidth,
-          boxSizing: "border-box",
-          position: variant === "persistent" ? "relative" : "fixed",
-          bgcolor: theme.palette.background.paper,
-          borderLeft: variant === "persistent" ? `1px solid ${theme.palette.divider}` : 'none',
-        },
-      }}
-      container={isMobile ? container : undefined}
-    >
-      {drawerContent}
-    </Drawer>
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </>
   );
 }

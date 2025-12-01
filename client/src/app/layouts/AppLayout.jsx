@@ -6,7 +6,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import { Outlet, useLocation } from "react-router-dom";
 
-import AppBar from "@common/components/layout/navigation/AppBar";
+import AppBar from "@app/layouts/AppBar";
 import DrawerLeft from "@app/layouts/LayoutDrawerLeft";
 import DrawerRight from "@app/layouts/LayoutDrawerRight";
 import Main from "@app/layouts/LayoutMain";
