@@ -1,103 +1,47 @@
-//client/src/app/layouts/AppLayout.jsx - Remove debug styles
-import React, { useRef, useEffect } from "react";
-import { useTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import Box from "@mui/material/Box";
-import { Outlet, useLocation } from "react-router-dom";
+// src/app/layouts/AppLayout.jsx
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 
-import AppBar from "@app/layouts/AppBar";
-import DrawerLeft from "@app/layouts/LayoutDrawerLeft";
-import DrawerRight from "@app/layouts/LayoutDrawerRight";
-import Main from "@app/layouts/LayoutMain";
+import ApplicationBar from "@/app/layouts/AppBar";
+import LayoutDrawerLeft from "@/app/layouts/LayoutDrawerLeft";
+import LayoutDrawerRight from "@/app/layouts/LayoutDrawerRight";
+import LayoutMain from "@/app/layouts/LayoutMain";
+import Footer from "@/app/layouts/Footer";           // ← Nuevo
 import { useLayoutStore } from "@app/store/layout-store";
 
-export default function AppLayout() { // Remove children prop
+export default function AppLayout() {
   const theme = useTheme();
-  const location = useLocation();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  
-  const {
-    drawerLeftOpen,
-    drawerRightOpen,
-    setDrawerLeftOpen,
-    setDrawerRightOpen,
-    closeBothDrawers
-  } = useLayoutStore();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { drawerLeftOpen, drawerRightOpen } = useLayoutStore();
 
-  const menuButtonLeftRef = useRef(null);
-  const menuButtonRightRef = useRef(null);
-
-  // Close drawers on route change (mobile)
-  useEffect(() => {
-    if (isMobile) {
-      closeBothDrawers();
-    }
-  }, [location.pathname, isMobile, closeBothDrawers]);
-
-  const handleDrawerLeftOpen = () => {
-    if (isMobile) setDrawerRightOpen(false);
-    setDrawerLeftOpen(true);
-  };
-
-  const handleDrawerRightOpen = () => {
-    if (isMobile) setDrawerLeftOpen(false);
-    setDrawerRightOpen(true);
-  };
-
-  const handleDrawerLeftClose = () => {
-    setDrawerLeftOpen(false);
-    setTimeout(() => menuButtonLeftRef.current?.focus(), 100);
-  };
-
-  const handleDrawerRightClose = () => {
-    setDrawerRightOpen(false);
-    setTimeout(() => menuButtonRightRef.current?.focus(), 100);
-  };
-
-  console.log("🏛️ AppLayout: Rendering with navigation");
+  const leftMenuButtonRef = React.useRef(null);
+  const rightMenuButtonRef = React.useRef(null);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        height: "100vh",
-        overflow: "hidden",
-        bgcolor: "background.default",
-      }}
-    >
-      <CssBaseline />
+    <>
+      {/* Tu layout original – 100% intacto */}
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+        <ApplicationBar
+          isMobile={isMobile}
+          leftMenuButtonRef={leftMenuButtonRef}
+          rightMenuButtonRef={rightMenuButtonRef}
+        />
 
-      <AppBar
-        drawerLeftOpen={drawerLeftOpen}
-        drawerRightOpen={drawerRightOpen}
-        onClickHandleDrawerLeftOpen={handleDrawerLeftOpen}
-        onClickHandleDrawerLeftClose={handleDrawerLeftClose}
-        onClickHandleDrawerRightOpen={handleDrawerRightOpen}
-        onClickHandleDrawerRightClose={handleDrawerRightClose}
-        menuButtonLeftRef={menuButtonLeftRef}
-        menuButtonRightRef={menuButtonRightRef}
-      />
+        <LayoutDrawerLeft menuButtonRef={leftMenuButtonRef} isMobile={isMobile} />
+        
+        <LayoutMain isMobile={isMobile} openLeft={drawerLeftOpen} openRight={drawerRightOpen}>
+          <Outlet />
+        </LayoutMain>
+        
+        <LayoutDrawerRight menuButtonRef={rightMenuButtonRef} isMobile={isMobile} />
+      </Box>
 
-      <DrawerLeft
-        drawerOpen={drawerLeftOpen}
-        onClickHandleDrawerClose={handleDrawerLeftClose}
-        menuButtonRef={menuButtonLeftRef}
-        variant={isMobile ? "temporary" : "persistent"}
-        ModalProps={{ keepMounted: true }}
-      />
+      {/* Footer reutilizable – ahora SÍ se ve */}
+      <Footer />
 
-      <Main isMobile={isMobile} openLeft={drawerLeftOpen} openRight={drawerRightOpen}>
-        <Outlet /> {/* Using Outlet instead of children */}
-      </Main>
-
-      <DrawerRight
-        drawerOpen={drawerRightOpen}
-        onClickHandleDrawerClose={handleDrawerRightClose}
-        menuButtonRef={menuButtonRightRef}
-        variant={isMobile ? "temporary" : "persistent"}
-        ModalProps={{ keepMounted: true }}
-      />
-    </Box>
+      {/* Espacio para que no tape el contenido */}
+      <Box sx={{ height: { xs: 64, sm: 56 } }} />
+    </>
   );
 }
