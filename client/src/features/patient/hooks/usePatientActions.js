@@ -7,7 +7,7 @@ import {
   DELETE_PATIENT,
 } from "@/services/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/common/components/shared/notification/Notify";
+import { notify } from "@/common/components/ui/feedback/notification/Notify";
 
 export function usePatientActions() {
   const setCurrentPatient = usePatientStore((state) => state.setCurrentPatient);

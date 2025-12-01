@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { myclient } from "@/services/graphql-client/myclient";
 import { CREATE_PATIENT } from "../../../services/graphql/patient";
 import { usePatientStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/common/components/shared/notification/Notify";
+import { notify } from "@/common/components/ui/feedback/notification/Notify";
 
 // ------------------------------
 // GraphQL Helper

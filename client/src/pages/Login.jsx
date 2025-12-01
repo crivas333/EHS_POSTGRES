@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Navigate } from "react-router-dom";
 
-import { myclient } from "@/services/graphql-client/myclient";
-import { LOGIN, REGISTER, REFRESH_TOKEN } from "@/services/graphql/auth";
-import { SignInForm } from "@/features/auth/components/SignInForm.jsx";
-import { SignUpForm } from "@/features/auth/components/SignUpForm.jsx";
-
-import { useAuthStore } from "@/state/zustand/ZustandStore";
-import { notify } from "@/common/components/shared/notification/Notify";
+// Updated imports to match new architecture
+import { myclient } from "@services/graphql-client/myclient";
+import { LOGIN, REGISTER, REFRESH_TOKEN } from "@services/graphql/auth";
+import { SignInForm } from "@auth/components/SignInForm";
+import { SignUpForm } from "@auth/components/SignUpForm.jsx";
+import { useAuthStore } from "@app/store/auth-store";
+import { notify } from "@common/components/ui/feedback/notification/Notify";
 
 const setAuthToken = (token) => {
   myclient.setHeader("Authorization", token ? `Bearer ${token}` : "");
@@ -19,8 +19,8 @@ export default function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
-  // THIS IS THE CORRECT WAY — get setAuth from Zustand
-  const setAuth = useAuthStore((state) => state.setAuth);
+  // Use the correct method names from your new auth store
+  const { login, isAuth } = useAuthStore();
 
   const savedToken = localStorage.getItem("access_token");
   if (savedToken) setAuthToken(savedToken);
@@ -28,16 +28,16 @@ export default function Login() {
   const loginMutation = useMutation({
     mutationFn: ({ email, password }) =>
       myclient.request(LOGIN, { email, password }),
-    onSuccess: ({ login }) => {
-      const { user, accessToken } = login;
+    onSuccess: ({ login: loginData }) => {
+      const { user, accessToken } = loginData;
       localStorage.setItem("access_token", accessToken);
       setAuthToken(accessToken);
 
-      // ONE LINE TO RULE THEM ALL — THIS IS THE WINNER
-      setAuth(user, accessToken);
+      // Use the correct method from your new auth store
+      login(user, accessToken); // Changed from setAuth to login
 
       notify("Login exitoso", "success");
-      navigate("/Paciente");
+      navigate("/paciente"); // Use lowercase path
     },
     onError: (err) => {
       const msg = err?.response?.errors?.[0]?.message || "Credenciales inválidas";
@@ -51,10 +51,13 @@ export default function Login() {
       const { user, accessToken } = register;
       localStorage.setItem("access_token", accessToken);
       setAuthToken(accessToken);
-      setAuth(user, accessToken);
+      
+      // Use the correct method from your new auth store
+      login(user, accessToken); // Changed from setAuth to login
+      
       notify("Cuenta creada con éxito", "success");
       setIsSignUp(false);
-      navigate("/Paciente");
+      navigate("/paciente"); // Use lowercase path
     },
     onError: (err) => {
       const msg = err?.response?.errors?.[0]?.message || "Error al registrarse";
@@ -77,10 +80,9 @@ export default function Login() {
     refresh();
   }, [savedToken]);
 
-  // Redirect if authenticated
-  const isAuth = useAuthStore((state) => state.isAuth);
+  // Redirect if authenticated - use lowercase path
   if (savedToken && isAuth) {
-    return <Navigate to="/Paciente" replace />;
+    return <Navigate to="/paciente" replace />; // Changed to lowercase
   }
 
   return (

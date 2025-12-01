@@ -16,7 +16,7 @@ import { useAuthStore } from "@/state/zustand/ZustandStore";
 import { myclient } from "@/services/graphql-client/myclient";
 import { ME } from "@/services/graphql/auth";
 
-import Notifier from "./common/components/shared/notification/Notifier.jsx";
+import Notifier from "./common/components/ui/feedback/notification/Notifier.jsx";
 import App from "./App.jsx";
 
 // Initialize auth on app start

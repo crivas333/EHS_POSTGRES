@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ESNext",
@@ -6,10 +7,43 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@app/*": ["src/app/*"],
+      "@common/*": ["src/common/*"],
+      "@features/*": ["src/features/*"],
+      "@pages/*": ["src/pages/*"],
+      "@services/*": ["src/services/*"],
+      "@types/*": ["src/types/*"],
+      
+      // Feature-specific aliases
+      "@auth/*": ["src/features/auth/*"],
+      "@patients/*": ["src/features/patient/*"],
+      "@appointments/*": ["src/features/appointments/*"],
+      "@encounters/*": ["src/features/encounters/*"],
+      "@scheduler/*": ["src/features/scheduler/*"],
+      "@system/*": ["src/features/system-config/*"],
+      
+      // Legacy aliases (for backward compatibility)
+      "@modules/*": ["src/features/*"],
+      "@graphql/*": ["src/services/graphql/*"],
       "@client/*": ["src/*"],
       "@server/*": ["../src/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
 }

@@ -1,6 +1,11 @@
-// src/components/NavBar/ProfileFlat.jsx
+// src/common/components/layout/navigation/Profile.jsx
+
 import React from "react";
-import { Box, Avatar, Typography } from "@mui/material";
+import { 
+  Box, 
+  Avatar, 
+  Typography 
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppBarHeight } from "@/constants/layout";
 
@@ -8,9 +13,10 @@ const ProfileFlat = () => {
   const theme = useTheme();
   const appBarHeight = useAppBarHeight();
 
+  // Use a placeholder or fix the path
   const user = {
     name: "Hever Mallaupoma",
-    avatar: "/images/avatars/avatar_11.png",
+    avatar: "/images/avatars/avatar_11.png", // This path is failing
     bio: "Brain Director",
   };
 
@@ -24,31 +30,17 @@ const ProfileFlat = () => {
         px: 2,
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.common.white,
-        borderRadius: "0px !important", // ⛔ force no rounding
-        boxShadow: "none !important",   // ⛔ force no shadow
+        borderRadius: "0px",
+        boxShadow: "none",
         overflow: "hidden",
-        // Override global Paper shape overrides:
-        "--Paper-radius": "0px",
-        "&, & *": {
-          borderRadius: "0px !important",
-        },
       }}
     >
-      <Avatar
-        alt={user.name}
-        src={user.avatar}
-        sx={{
-          width: 40,
-          height: 40,
-          borderRadius: "50%", // keep avatar circular only
-        }}
-      />
+    
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          borderRadius: "0px !important",
         }}
       >
         <Typography variant="subtitle1" noWrap sx={{ fontWeight: 600 }}>

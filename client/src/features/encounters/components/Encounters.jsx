@@ -17,7 +17,7 @@ import {
 } from "@/services/graphql/encounters";
 //import { UPDATE_APPOINTMENT_STATUS } from "@/features/encounters/api/gqlQueries_encounters";
 import { useEncounterForm } from "@/hooks/useEncounterForm";
-import ReusableControls from "@/common/components/shared/ui/reusableControls/ReusableControls";
+import ReusableControls from "@/common/components/ui/reusableControls/ReusableControls";
 
 export default function Encounter({ appointmentId, patientId }) {
   const queryClient = useQueryClient();

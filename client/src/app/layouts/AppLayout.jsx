@@ -1,28 +1,39 @@
-//client/src/layouts/SiteLayout.jsx
-import React, { useState, useRef } from "react";
+//client/src/app/layouts/AppLayout.jsx - Remove debug styles
+import React, { useRef, useEffect } from "react";
 import { useTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import { Outlet, useLocation } from "react-router-dom";
 
-import AppBar from "@/common/components/layout/navigation/AppBar";
-import DrawerLeft from "@/common/components/layout/navigation/DrawerLeft";
-import DrawerRight from "@/common/components/layout/navigation/DrawerRight";
-import Main from "@/layouts/Main";
+import AppBar from "@common/components/layout/navigation/AppBar";
+import DrawerLeft from "@app/layouts/LayoutDrawerLeft";
+import DrawerRight from "@app/layouts/LayoutDrawerRight";
+import Main from "@app/layouts/LayoutMain";
+import { useLayoutStore } from "@app/store/layout-store";
 
-export default function SiteLayout() { // Remove children prop
+export default function AppLayout() { // Remove children prop
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
-
-  console.log("🏛️ SiteLayout: Rendering", { path: location.pathname });
-
-  const [drawerLeftOpen, setDrawerLeftOpen] = useState(false);
-  const [drawerRightOpen, setDrawerRightOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  
+  const {
+    drawerLeftOpen,
+    drawerRightOpen,
+    setDrawerLeftOpen,
+    setDrawerRightOpen,
+    closeBothDrawers
+  } = useLayoutStore();
 
   const menuButtonLeftRef = useRef(null);
   const menuButtonRightRef = useRef(null);
+
+  // Close drawers on route change (mobile)
+  useEffect(() => {
+    if (isMobile) {
+      closeBothDrawers();
+    }
+  }, [location.pathname, isMobile, closeBothDrawers]);
 
   const handleDrawerLeftOpen = () => {
     if (isMobile) setDrawerRightOpen(false);
@@ -36,13 +47,15 @@ export default function SiteLayout() { // Remove children prop
 
   const handleDrawerLeftClose = () => {
     setDrawerLeftOpen(false);
-    menuButtonLeftRef.current?.focus();
+    setTimeout(() => menuButtonLeftRef.current?.focus(), 100);
   };
 
   const handleDrawerRightClose = () => {
     setDrawerRightOpen(false);
-    menuButtonRightRef.current?.focus();
+    setTimeout(() => menuButtonRightRef.current?.focus(), 100);
   };
+
+  console.log("🏛️ AppLayout: Rendering with navigation");
 
   return (
     <Box
