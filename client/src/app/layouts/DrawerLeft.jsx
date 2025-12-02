@@ -15,7 +15,8 @@ import {
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { NavLink, useLocation } from "react-router-dom";
 
-import Profile from "@app/components/Profile";
+//import Profile from "@app/components/Profile";
+import Profile from "@app/layouts/Profile";
 import drawerConfig from "@app/config/drawer-config";
 import { useLayoutStore } from "@app/store/layout-store"; // ← ¡AQUÍ ESTÁ LA MAGIA!
 

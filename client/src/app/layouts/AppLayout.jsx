@@ -3,10 +3,10 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 
-import ApplicationBar from "@/app/layouts/AppBar";
-import LayoutDrawerLeft from "@/app/layouts/LayoutDrawerLeft";
-import LayoutDrawerRight from "@/app/layouts/LayoutDrawerRight";
-import LayoutMain from "@/app/layouts/LayoutMain";
+import MainHeader from "@/app/layouts/MainHeader";
+import DrawerLeft from "@/app/layouts/DrawerLeft";
+import DrawerRight from "@/app/layouts/DrawerRight";
+import Main from "@/app/layouts/Main";
 import Footer from "@/app/layouts/Footer";           // ← Nuevo
 import { useLayoutStore } from "@app/store/layout-store";
 
@@ -22,19 +22,19 @@ export default function AppLayout() {
     <>
       {/* Tu layout original – 100% intacto */}
       <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-        <ApplicationBar
+        <MainHeader
           isMobile={isMobile}
           leftMenuButtonRef={leftMenuButtonRef}
           rightMenuButtonRef={rightMenuButtonRef}
         />
 
-        <LayoutDrawerLeft menuButtonRef={leftMenuButtonRef} isMobile={isMobile} />
+        <DrawerLeft menuButtonRef={leftMenuButtonRef} isMobile={isMobile} />
         
-        <LayoutMain isMobile={isMobile} openLeft={drawerLeftOpen} openRight={drawerRightOpen}>
+        <Main isMobile={isMobile} openLeft={drawerLeftOpen} openRight={drawerRightOpen}>
           <Outlet />
-        </LayoutMain>
+        </Main>
         
-        <LayoutDrawerRight menuButtonRef={rightMenuButtonRef} isMobile={isMobile} />
+        <DrawerRight menuButtonRef={rightMenuButtonRef} isMobile={isMobile} />
       </Box>
 
       {/* Footer reutilizable – ahora SÍ se ve */}
