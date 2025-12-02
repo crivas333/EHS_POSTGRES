@@ -1,3 +1,4 @@
+// client/src/features/scheduler/components/MyFullCalendar.jsx
 import React, { useState, useRef, useEffect } from "react";
 import Tooltip from "@mui/material/Tooltip";
 import FullCalendar from "@fullcalendar/react";
@@ -17,14 +18,10 @@ import {
   DELETE_APPOINTMENT,
 } from "@/services/graphql/fullCalendar";
 
-
-
-
-
 // ---------- Helpers ----------
 const parseDate = (value) => (value ? new Date(value) : null);
 
-const mapEventToInput = (input= false) => {
+const mapEventToInput = (input = false) => {
   if (!input) return null;
   const evt = input.event || {};
   return {
@@ -39,7 +36,6 @@ const mapEventToInput = (input= false) => {
     notRegistered:
       (evt.extendedProps?.notRegistered ?? input.notRegistered ?? "").toUpperCase(),
     description: evt.extendedProps?.description ?? input.description ?? "",
-
   };
 };
 
@@ -66,6 +62,25 @@ function renderEventContent(eventInfo) {
   const { type, fullName, notRegistered, status = "", description } =
     event.extendedProps || {};
 
+  // NUEVO: Detectar móvil y mostrar solo la hora de inicio
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+
+  if (isMobile) {
+    const startTime = event.start
+      ? new Date(event.start).toLocaleTimeString("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : timeText.split(" - ")[0]; // fallback por si acaso
+
+    return (
+      <div className={`fc-event-main ${status.toLowerCase()}`}>
+        <b>{startTime}</b>
+      </div>
+    );
+  }
+
+  // TU VERSIÓN ORIGINAL (escritorio) 100% INTACTA
   return (
     <Tooltip
       placement="bottom-start"
@@ -126,7 +141,7 @@ const logGraphQLError = (context, err) => {
   }
 };
 
-// ---------- Component ----------
+// ---------- Componente principal (100% tu código original) ----------
 export default function MyFullCalendar() {
   const [openEventDialog, setOpenEventDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -235,7 +250,7 @@ export default function MyFullCalendar() {
 
         return {
           ...evt,
-          id: evt.id, // use DB appointment id
+          id: evt.id,
           start: parsedStart,
           end: parsedEnd,
           backgroundColor: statusToColor(evt.status),

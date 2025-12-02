@@ -1,3 +1,4 @@
+// TableOfAppointments.jsx – NIVEL HOSPITAL REAL
 import React, { useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
@@ -11,6 +12,8 @@ import {
   IconButton,
   Typography,
   useTheme,
+  alpha,
+  Box,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -30,7 +33,8 @@ import DeleteEventDialog from "./DeleteEventDialog";
 import { defaultEvent } from "@/features/appointments/defaultEvent";
 import { statusToColor } from "@/features/appointments/statusToColor";
 
-// ---------- Time Cell ----------
+const columnHelper = createColumnHelper();
+
 function TimeCell({ value }) {
   if (!value)
     return <Typography variant="body2" color="text.secondary">-</Typography>;
@@ -46,11 +50,9 @@ function TimeCell({ value }) {
     });
     return <Typography variant="body2">{formatted}</Typography>;
   } catch {
-    return <Typography variant="body2" color="text.secondary">Invalid</Typography>;
+    return <Typography variant="body2" color="text.secondary">Inválido</Typography>;
   }
 }
-
-const columnHelper = createColumnHelper();
 
 export default function TableOfAppointments({
   appointments,
@@ -91,7 +93,7 @@ export default function TableOfAppointments({
         id: "actions",
         header: "Acciones",
         cell: ({ row }) => (
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Box sx={{ display: "flex", gap: 0.5 }}>
             <IconButton
               size="small"
               color="primary"
@@ -112,7 +114,7 @@ export default function TableOfAppointments({
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
-          </div>
+          </Box>
         ),
       }),
     ],
@@ -131,11 +133,13 @@ export default function TableOfAppointments({
 
   return (
     <Paper
-      elevation={3}
+      variant="outlined"
       sx={{
         borderRadius: 3,
         overflow: "hidden",
         backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.shadows[1],
       }}
     >
       <TableToolbar
@@ -145,124 +149,128 @@ export default function TableOfAppointments({
         setGlobalFilter={setGlobalFilter}
       />
 
-     <TableContainer>
-    <Table size="small" stickyHeader>
-      {/* ---------- Header ---------- */}
-      <TableHead
-        sx={{
-          "& th": {
-            backgroundColor: theme.palette.primary.light,
-            color: theme.palette.primary.contrastText,
-            fontWeight: 600,
-            textTransform: "uppercase",
-            fontSize: "0.8rem",
-            letterSpacing: "0.03em",
-          },
-        }}
-      >
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => (
-              <TableCell
-                key={header.id}
-                onClick={header.column.getToggleSortingHandler()}
-                sx={{
-                  cursor: "pointer",
-                  "&:hover": { backgroundColor: theme.palette.primary.main },
-                }}
-              >
-                {flexRender(header.column.columnDef.header, header.getContext())}
-                {{
-                  asc: " 🔼",
-                  desc: " 🔽",
-                }[header.column.getIsSorted()] ?? null}
-              </TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableHead>
-
-      {/* ---------- Body ---------- */}
-      <TableBody>
-        {table.getRowModel().rows.length ? (
-          table.getRowModel().rows.map((row) => {
-            const isHighlighted = row.original.id === highlightedId;
-            const rowColor = row.original.backgroundColor || statusToColor(row.original.status);
-
-            return (
-              <TableRow
-                key={row.id}
-                hover
-                sx={{
-                  backgroundColor: isHighlighted
-                    ? theme.palette.success.light
-                    : "inherit",
-                  transition: "background-color 0.3s ease",
-                  "&:nth-of-type(odd)": {
-                    backgroundColor: theme.palette.action.hover,
-                  },
-                }}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const colId = cell.column.id;
-                  let sxCell = { fontSize: "0.85rem" };
-
-                  // 🎨 Status cell color
-                  if (colId === "status") {
-                    const bgColor = rowColor;
-                    sxCell = {
-                      ...sxCell,
-                      backgroundColor: bgColor,
-                      color: "#fff",
-                      borderRadius: "6px",
-                      textAlign: "center",
+      <TableContainer>
+        <Table size="small" stickyHeader>
+          {/* HEADER – ESTILO PROFESIONAL */}
+          <TableHead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableCell
+                    key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
+                    sx={{
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
                       fontWeight: 600,
-                      px: 1.5,
-                    };
-                  }
-
-                  return (
-                    <TableCell key={cell.id} sx={sxCell}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  );
-                })}
+                      fontSize: "0.75rem",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                      transition: theme.transitions.create("background-color"),
+                      "&:hover": {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.getIsSorted()
+                      ? header.column.getIsSorted() === "asc"
+                        ? " ↑"
+                        : " ↓"
+                      : null}
+                  </TableCell>
+                ))}
               </TableRow>
-            );
-          })
-        ) : (
-          <TableRow>
-            <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
-              No appointments found.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </TableContainer>
+            ))}
+          </TableHead>
 
-  {/* ---------- Dialogs ---------- */}
-  <EditEventDialog
-    show={openEventDialog}
-    evt={evt}
-    closeDialog={() => {
-      setEvt(defaultEvent);
-      setOpenEventDialog(false);
-    }}
-    handleChangingEvt={handleEditEvt}
-  />
+          {/* BODY */}
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => {
+                const isHighlighted = row.original.id === highlightedId;
+                const rowColor = row.original.backgroundColor || statusToColor(row.original.status);
 
-  <DeleteEventDialog
-    show={openDeleteDialog}
-    evt={evt}
-    closeDialog={() => {
-      setEvt(defaultEvent);
-      setOpenDeleteDialog(false);
-    }}
-    handleRemovingEvt={handleDeleteEvt}
-  />
-</Paper>
+                return (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{
+                      backgroundColor: isHighlighted
+                        ? alpha(theme.palette.success.light, 0.3)
+                        : "inherit",
+                      transition: "all 0.2s ease",
+                      "&:nth-of-type(odd)": {
+                        backgroundColor: theme.palette.action.hover,
+                      },
+                      "&:hover": {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      },
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const colId = cell.column.id;
+                      let cellSx = {
+                        fontSize: "0.85rem",
+                        py: 1.2,
+                      };
 
+                      if (colId === "status") {
+                        cellSx = {
+                          ...cellSx,
+                          backgroundColor: rowColor,
+                          color: "#fff",
+                          fontWeight: 600,
+                          textAlign: "center",
+                          borderRadius: 2,
+                          px: 1.5,
+                        };
+                      }
+
+                      return (
+                        <TableCell key={cell.id} sx={cellSx}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} align="center" sx={{ py: 6 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No se encontraron citas
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* DIALOGS */}
+      <EditEventDialog
+        show={openEventDialog}
+        evt={evt}
+        closeDialog={() => {
+          setEvt(defaultEvent);
+          setOpenEventDialog(false);
+        }}
+        handleChangingEvt={handleEditEvt}
+      />
+
+      <DeleteEventDialog
+        show={openDeleteDialog}
+        evt={evt}
+        closeDialog={() => {
+          setEvt(defaultEvent);
+          setOpenDeleteDialog(false);
+        }}
+        handleRemovingEvt={handleDeleteEvt}
+      />
+    </Paper>
   );
 }
 
