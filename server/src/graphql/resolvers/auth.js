@@ -1,3 +1,4 @@
+// server/scr/graphql/resolvers/auth.js
 import { AuthService, TokenService } from "../../domain/auth/index.js";
 import { GraphQLError } from "graphql";
 

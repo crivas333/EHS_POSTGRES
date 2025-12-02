@@ -1,3 +1,4 @@
+// server/src/graphql/directives/auth.js
 import { defaultFieldResolver } from "graphql";
 import { mapSchema, getDirective, MapperKind } from "@graphql-tools/utils";
 import { GraphQLError } from "graphql";

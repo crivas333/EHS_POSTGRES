@@ -64,16 +64,6 @@ pool.connect()
     process.exit(1);
   });
 
-pool.query("SELECT current_database(), current_user, version()")
-  .then(res => {
-    console.log("Connected to DB:", res.rows[0].current_database);
-    console.log("Connected as user:", res.rows[0].current_user);
-    console.log("PostgreSQL version:", res.rows[0].version);
-  })
-  .catch(err => {
-    console.error("Test query failed:", err);
-  });
-
 // -----------------------------
 // Express app
 // -----------------------------
@@ -132,102 +122,84 @@ app.use("/api/v1/dataGrid", dataGridRoutes);
 app.use("/api/v1/fullCalendar", fullCalendarRoutes);
 
 // -----------------------------
-// GraphQL API (no UI)
+// GraphQL API – CORREGIDO 100%
 // -----------------------------
 const schema = buildSchema();
 
-app.use(
-  "/graphql",
-  graphqlHTTP(async (req, res) => {
-    // Extract token from Authorization header
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.replace("Bearer ", "");
-    
-    let user = null;
-    
-    if (token) {
-      try {
-        const payload = TokenService.verifyAccessToken(token);
-        user = await authService.me(payload.userId);
-        // console.log("CONTEXT - User loaded from token:", user);
-        // console.log("CONTEXT - User keys:", Object.keys(user));
-        // console.log("CONTEXT - User properties:");
-        // console.log("  - id:", user?.id);
-        // console.log("  - userName:", user?.userName);
-        // console.log("  - email:", user?.email);
-        // console.log("  - firstName:", user?.firstName);
-        // console.log("  - lastName:", user?.lastName);
-        // console.log("  - fullName:", user?.fullName);
-        // console.log("  - role:", user?.role);
-        // console.log("  - isActive:", user?.isActive);
-      } catch (error) {
-        // Token verification failed - silent fail, let directives handle it
-        console.log("Token verification failed:", error.message);
-      }
-    }
+app.use("/graphql", async (req, res, next) => {
+  // 1. OPERACIONES PÚBLICAS → NO verificar token
+  const body = req.body || {};
+  const operationName = body.operationName;
+  const query = (body.query || "").toLowerCase();
 
-    return {
+  const isPublicOperation =
+    operationName === "login" ||
+    operationName === "register" ||
+    operationName === "refreshToken" ||
+    query.includes("mutation login") ||
+    query.includes("mutation register") ||
+    query.includes("mutation refreshtoken");
+
+  if (isPublicOperation) {
+    return graphqlHTTP({
       schema,
       graphiql: false,
-      context: { 
-        req, 
-        res, 
-        pool,
-        user  // This is what the directives will check
-      },
-      customFormatErrorFn: (err) => {
-        console.error("GraphQL Error:", err.message);
-        
-        // Handle custom errors
-        if (err.originalError instanceof ValidationError) {
-          return {
-            message: err.originalError.message,
-            code: err.originalError.code || "VALIDATION_ERROR",
-            path: err.path,
-          };
-        }
-        
-        if (err.originalError instanceof NotFoundError) {
-          return {
-            message: err.originalError.message,
-            code: err.originalError.code || "NOT_FOUND",
-            path: err.path,
-          };
-        }
-        
-        // Handle GraphQL errors
-        if (err.extensions?.code === "UNAUTHORIZED") {
-          res.clearCookie("refresh_token");
-        }
-        
-        if (err.extensions?.code === "ALREADY_AUTHENTICATED") {
-          return {
-            message: err.message,
-            code: "ALREADY_AUTHENTICATED",
-            path: err.path,
-          };
-        }
-        
-        return {
-          message: err.message,
-          code: err.extensions?.code || "INTERNAL_ERROR",
-          path: err.path,
-        };
-      },
-    };
-  })
-);
+      context: { req, res, pool, user: null },
+      customFormatErrorFn: (err) => ({
+        message: err.message,
+        code: err.extensions?.code || "BAD_REQUEST",
+      }),
+    })(req, res, next);
+  }
+
+  // 2. OPERACIONES PROTEGIDAS → verificar token
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.replace("Bearer ", "");
+  let user = null;
+
+  if (token && token !== "null" && token !== "undefined") {
+    try {
+      const payload = TokenService.verifyAccessToken(token);
+      user = await authService.me(payload.userId);
+    } catch (error) {
+      console.log("Token invalid or expired:", error.message);
+      // user queda null → @auth lanzará 401
+    }
+  }
+
+  return graphqlHTTP({
+    schema,
+    graphiql: false,
+    context: { req, res, pool, user },
+    customFormatErrorFn: (err) => {
+      console.error("GraphQL Error:", err.message);
+
+      if (err.extensions?.code === "UNAUTHORIZED") {
+        return { message: "Authentication required", code: "UNAUTHORIZED" };
+      }
+
+      if (err.originalError instanceof ValidationError) {
+        return { message: err.originalError.message, code: "VALIDATION_ERROR" };
+      }
+      if (err.originalError instanceof NotFoundError) {
+        return { message: err.originalError.message, code: "NOT_FOUND" };
+      }
+
+      return {
+        message: err.message,
+        code: err.extensions?.code || "INTERNAL_ERROR",
+      };
+    },
+  })(req, res, next);
+});
 
 // -----------------------------
-// FULL GRAPHQL PLAYGROUND WITH HEADERS TAB
+// PLAYGROUND
 // -----------------------------
 app.get("/playground", (req, res) => {
   const playground = renderPlaygroundPage({
     endpoint: "/graphql",
-    subscriptionEndpoint: "/subscriptions",
-    settings: {
-      "request.credentials": "include",
-    },
+    settings: { "request.credentials": "include" },
   });
   res.setHeader("Content-Type", "text/html");
   res.send(playground);
@@ -245,7 +217,6 @@ if (IN_PROD) {
 
 // 404 & error handler
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
-
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   console.error("Unhandled Error:", err);
@@ -262,19 +233,11 @@ const HOST = "0.0.0.0";
 const startServer = async () => {
   try {
     await sequelize.authenticate();
-    console.log("Sequelize connected (no sync)");
+    console.log("Sequelize connected");
 
     app.listen(PORT, HOST, () => {
       console.log(`Server running at http://${LAN_IP}:${PORT}/graphql`);
-      console.log(`FULL PLAYGROUND → http://${LAN_IP}:${PORT}/playground`);
-      // console.log(`Authentication endpoints available:`);
-      // console.log(`  - Register: POST /graphql`);
-      // console.log(`  - Login: POST /graphql`);
-      // console.log(`  - Refresh: POST /graphql`);
-      // console.log(`  - Logout: POST /graphql`);
-      if (isLAN) {
-        console.log(`LAN access: http://${LAN_IP}:${PORT}/playground`);
-      }
+      console.log(`PLAYGROUND → http://${LAN_IP}:${PORT}/playground`);
     });
   } catch (err) {
     console.error("Sequelize connection error:", err);
