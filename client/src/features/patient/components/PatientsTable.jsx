@@ -54,21 +54,50 @@ export default function PatientsTable({
       columnHelper.accessor("idTypeNo", {
         header: "Nº Documento",
         cell: (info) => (
-          <Typography fontFamily="monospace" fontWeight="bold" color="primary">
+          <Typography
+            variant="body1"
+            sx={{
+              fontFamily: theme.typography.table.cell.fontFamily,
+              fontSize: theme.typography.table.cell.fontSize,
+              fontWeight: 600, // Keep the bold for document number
+              color: theme.palette.primary.main,
+              //fontFamily: "monospace",
+            }}
+          >
             {info.getValue() || "-"}
           </Typography>
         ),
       }),
       columnHelper.accessor("fullName", {
         header: "Nombre Completo",
-        cell: (info) => <Typography fontWeight="medium">{info.getValue()}</Typography>,
+        cell: (info) => (
+          <Typography
+            variant="body1"
+            sx={{
+              ...theme.typography.table.cell,
+              fontWeight: 500, // Medium weight for names
+            }}
+          >
+            {info.getValue()}
+          </Typography>
+        ),
       }),
       columnHelper.accessor(
         (row) => `${row.lastName || ""} ${row.lastName2 || ""}`.trim(),
         {
           id: "apellidos",
           header: "Apellidos",
-          cell: (info) => <Typography color="text.secondary">{info.getValue() || "-"}</Typography>,
+          cell: (info) => (
+            <Typography
+              variant="body1"
+              sx={{
+                ...theme.typography.table.cell,
+                color: theme.palette.text.secondary,
+              }}
+            >
+              {info.getValue() || "-"}
+            </Typography>
+          ),
         }
       ),
       columnHelper.display({
@@ -81,15 +110,15 @@ export default function PatientsTable({
               background: "none",
               border: "none",
               color: theme.palette.primary.main,
-              fontWeight: 600,
               cursor: "pointer",
               textDecoration: "underline",
+              padding: 0,
+              fontFamily: theme.typography.table.cell.fontFamily,
+              fontSize: theme.typography.table.cell.fontSize,
+              fontWeight: 600,
               "&:hover": { color: theme.palette.primary.dark },
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onRowClick(row.original);
-            }}
+            onClick={() => onRowClick(row.original)}
           >
             Abrir ficha →
           </Box>
@@ -111,31 +140,48 @@ export default function PatientsTable({
     enableSorting: !isLoading,
   });
 
-  // Siempre renderizamos VISIBLE_ROWS filas
-  const renderFixedRows = () => {
+  // Renderiza siempre VISIBLE_ROWS filas (skeletons, datos o vacías)
+  const renderRows = () => {
     const rows = [];
 
     if (isLoading) {
       for (let i = 0; i < VISIBLE_ROWS; i++) {
-        rows.push(<SkeletonRow key={`load-${i}`} />);
+        rows.push(<SkeletonRow key={`skeleton-${i}`} />);
       }
     } else if (data.length === 0) {
       rows.push(
-        <TableRow key="no-results">
-          <TableCell colSpan={4} align="center" sx={{ height: ROW_HEIGHT * 4 }}>
-            <Typography variant="h6" color="text.secondary">
+        <TableRow key="no-data">
+          <TableCell 
+            colSpan={4} 
+            align="center" 
+            sx={{ 
+              height: ROW_HEIGHT * 4, 
+              py: 6,
+              ...theme.typography.table.cell,
+            }}
+          >
+            <Typography 
+              variant="h6" 
+              color="text.secondary"
+              sx={{ fontSize: "1rem", fontWeight: 600 }}
+            >
               No se encontraron pacientes
             </Typography>
-            <Typography color="text.secondary" mt={1}>
+            <Typography 
+              color="text.secondary" 
+              mt={1}
+              sx={{ fontSize: theme.typography.table.cell.fontSize }}
+            >
               Intenta con otros criterios de búsqueda
             </Typography>
           </TableCell>
         </TableRow>
       );
+      // Rellenar el resto para mantener altura
       for (let i = 1; i < VISIBLE_ROWS; i++) {
         rows.push(
           <TableRow key={`empty-${i}`} sx={{ height: ROW_HEIGHT }}>
-            <TableCell colSpan={4} sx={{ borderBottom: "none" }} />
+            <TableCell colSpan={4} sx={{ ...theme.typography.table.cell }} />
           </TableRow>
         );
       }
@@ -146,14 +192,13 @@ export default function PatientsTable({
             key={row.id}
             hover
             onClick={() => onRowClick(row.original)}
-            sx={{
-              cursor: "pointer",
-              height: ROW_HEIGHT,
-              "&:nth-of-type(odd)": { backgroundColor: theme.palette.action.hover },
-            }}
+            sx={{ cursor: "pointer", height: ROW_HEIGHT }}
           >
             {row.getVisibleCells().map((cell) => (
-              <TableCell key={cell.id} sx={{ py: 2 }}>
+              <TableCell 
+                key={cell.id}
+                sx={cell.column.id === "actions" ? {} : theme.typography.table.cell}
+              >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}
@@ -161,11 +206,12 @@ export default function PatientsTable({
         );
       });
 
+      // Rellenar filas vacías para mantener altura fija
       const remaining = VISIBLE_ROWS - table.getRowModel().rows.length;
       for (let i = 0; i < remaining; i++) {
         rows.push(
           <TableRow key={`fill-${i}`} sx={{ height: ROW_HEIGHT }}>
-            <TableCell colSpan={4} sx={{ borderBottom: "none" }} />
+            <TableCell colSpan={4} sx={{ ...theme.typography.table.cell }} />
           </TableRow>
         );
       }
@@ -176,48 +222,66 @@ export default function PatientsTable({
 
   return (
     <Paper elevation={4} sx={{ borderRadius: 3, overflow: "hidden" }}>
-      {/* ALTURA TOTAL FIJA */}
       <TableContainer sx={{ height: TABLE_HEIGHT }}>
-        <Table stickyHeader size="medium">
+        <Table stickyHeader>
           <TableHead>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableCell
                     key={header.id}
-                    onClick={header.column.getToggleSortingHandler()}
+                    onClick={isLoading ? undefined : header.column.getToggleSortingHandler()}
                     sx={{
-                      backgroundColor: theme.palette.primary.main,
-                      color: "white",
-                      fontWeight: "bold",
                       cursor: isLoading ? "default" : "pointer",
                       opacity: isLoading ? 0.7 : 1,
+                      ...theme.typography.table.header,
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.primary.contrastText,
+                      "&:hover": {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
                     }}
                   >
                     {flexRender(header.column.columnDef.header, header.getContext())}
-                    {!isLoading && (header.column.getIsSorted() === "asc" ? "↑" : header.column.getIsSorted() === "desc" ? "↓" : null)}
+                    {!isLoading &&
+                      (header.column.getIsSorted() === "asc"
+                        ? " ↑"
+                        : header.column.getIsSorted() === "desc"
+                        ? " ↓"
+                        : null)}
                   </TableCell>
                 ))}
               </TableRow>
             ))}
           </TableHead>
 
-          <TableBody>{renderFixedRows()}</TableBody>
+          <TableBody>{renderRows()}</TableBody>
         </Table>
       </TableContainer>
 
-      {/* LÍNEA CORREGIDA: sin ?? + && */}
       <TablePagination
         component="div"
         count={pageCount > 0 ? pageCount * pagination.pageSize : -1}
         rowsPerPage={pagination.pageSize}
         page={pagination.pageIndex}
-        onPageChange={(_, newPage) => setPagination((p) => ({ ...p, pageIndex: newPage }))}
+        onPageChange={(_, newPage) =>
+          setPagination((p) => ({ ...p, pageIndex: newPage }))
+        }
         onRowsPerPageChange={(e) =>
-          setPagination({ pageIndex: 0, pageSize: parseInt(e.target.value, 10) })
+          setPagination({
+            pageIndex: 0,
+            pageSize: parseInt(e.target.value, 10),
+          })
         }
         rowsPerPageOptions={[10, 25, 50, 100]}
         labelRowsPerPage="Filas por página"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+        }
+        sx={{
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows, & .MuiTablePagination-select":
+            theme.typography.table.cell,
+        }}
       />
     </Paper>
   );
@@ -226,7 +290,10 @@ export default function PatientsTable({
 PatientsTable.propTypes = {
   data: PropTypes.array.isRequired,
   pageCount: PropTypes.number.isRequired,
-  pagination: PropTypes.object.isRequired,
+  pagination: PropTypes.shape({
+    pageIndex: PropTypes.number.isRequired,
+    pageSize: PropTypes.number.isRequired,
+  }).isRequired,
   setPagination: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
   onRowClick: PropTypes.func.isRequired,

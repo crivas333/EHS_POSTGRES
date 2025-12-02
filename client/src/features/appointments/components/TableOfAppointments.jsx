@@ -1,6 +1,5 @@
-// TableOfAppointments.jsx – NIVEL HOSPITAL REAL
+// src/features/appointments/TableOfAppointments.jsx
 import React, { useState, useMemo } from "react";
-import PropTypes from "prop-types";
 import {
   Table,
   TableBody,
@@ -10,14 +9,12 @@ import {
   TableRow,
   Paper,
   IconButton,
-  Typography,
-  useTheme,
-  alpha,
   Box,
+  //alpha,
+  useTheme,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
 import {
   useReactTable,
   getCoreRowModel,
@@ -36,21 +33,19 @@ import { statusToColor } from "@/features/appointments/statusToColor";
 const columnHelper = createColumnHelper();
 
 function TimeCell({ value }) {
-  if (!value)
-    return <Typography variant="body2" color="text.secondary">-</Typography>;
+  if (!value) return <>-</>;
 
   try {
     const date = new Date(value);
-    const formatted = date.toLocaleString("es-CO", {
+    return date.toLocaleString("es-CO", {
       day: "2-digit",
       month: "short",
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
     });
-    return <Typography variant="body2">{formatted}</Typography>;
   } catch {
-    return <Typography variant="body2" color="text.secondary">Inválido</Typography>;
+    return "Inválido";
   }
 }
 
@@ -132,16 +127,7 @@ export default function TableOfAppointments({
   });
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        backgroundColor: theme.palette.background.paper,
-        border: `1px solid ${theme.palette.divider}`,
-        boxShadow: theme.shadows[1],
-      }}
-    >
+    <Paper variant="outlined" sx={{ borderRadius: 3, overflow: "hidden" }}>
       <TableToolbar
         handleAddingEvt={handleAddEvt}
         preGlobalFilteredRows={rows}
@@ -150,8 +136,7 @@ export default function TableOfAppointments({
       />
 
       <TableContainer>
-        <Table size="small" stickyHeader>
-          {/* HEADER – ESTILO PROFESIONAL */}
+        <Table stickyHeader>
           <TableHead>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -159,25 +144,15 @@ export default function TableOfAppointments({
                   <TableCell
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    sx={{
-                      backgroundColor: theme.palette.primary.main,
-                      color: theme.palette.primary.contrastText,
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                      letterSpacing: "0.05em",
-                      textTransform: "uppercase",
-                      cursor: "pointer",
-                      transition: theme.transitions.create("background-color"),
-                      "&:hover": {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
                   >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
                     {header.column.getIsSorted()
                       ? header.column.getIsSorted() === "asc"
-                        ? " ↑"
-                        : " ↓"
+                        ? " up arrow"
+                        : " down arrow"
                       : null}
                   </TableCell>
                 ))}
@@ -185,52 +160,45 @@ export default function TableOfAppointments({
             ))}
           </TableHead>
 
-          {/* BODY */}
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => {
                 const isHighlighted = row.original.id === highlightedId;
-                const rowColor = row.original.backgroundColor || statusToColor(row.original.status);
+                const rowColor =
+                  row.original.backgroundColor ||
+                  statusToColor(row.original.status);
 
                 return (
                   <TableRow
                     key={row.id}
+                    className={isHighlighted ? "highlighted" : ""}
                     hover
-                    sx={{
-                      backgroundColor: isHighlighted
-                        ? alpha(theme.palette.success.light, 0.3)
-                        : "inherit",
-                      transition: "all 0.2s ease",
-                      "&:nth-of-type(odd)": {
-                        backgroundColor: theme.palette.action.hover,
-                      },
-                      "&:hover": {
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                      },
-                    }}
                   >
                     {row.getVisibleCells().map((cell) => {
-                      const colId = cell.column.id;
-                      let cellSx = {
-                        fontSize: "0.85rem",
-                        py: 1.2,
-                      };
-
-                      if (colId === "status") {
-                        cellSx = {
-                          ...cellSx,
-                          backgroundColor: rowColor,
-                          color: "#fff",
-                          fontWeight: 600,
-                          textAlign: "center",
-                          borderRadius: 2,
-                          px: 1.5,
-                        };
+                      if (cell.column.id === "status") {
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            sx={{
+                              ...theme.typography.table.statusBadge,
+                              backgroundColor: rowColor,
+                              color: "#fff",
+                            }}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        );
                       }
 
                       return (
-                        <TableCell key={cell.id} sx={cellSx}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       );
                     })}
@@ -240,9 +208,7 @@ export default function TableOfAppointments({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center" sx={{ py: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    No se encontraron citas
-                  </Typography>
+                  No se encontraron citas
                 </TableCell>
               </TableRow>
             )}
@@ -250,7 +216,6 @@ export default function TableOfAppointments({
         </Table>
       </TableContainer>
 
-      {/* DIALOGS */}
       <EditEventDialog
         show={openEventDialog}
         evt={evt}
@@ -273,11 +238,3 @@ export default function TableOfAppointments({
     </Paper>
   );
 }
-
-TableOfAppointments.propTypes = {
-  appointments: PropTypes.array.isRequired,
-  highlightedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  handleAddEvt: PropTypes.func,
-  handleEditEvt: PropTypes.func,
-  handleDeleteEvt: PropTypes.func,
-};

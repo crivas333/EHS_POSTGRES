@@ -1,4 +1,3 @@
-
 // src/theme/typography.js
 const typography = {
   fontFamily: `"Inter", "Roboto", "Helvetica", "Arial", sans-serif`,
@@ -67,7 +66,7 @@ const typography = {
     },
   },
 
-  // ── NEW: dashboardForm variant (used in ManifestRefraction) ─────
+  // ── DASHBOARD FORM ──────────────────────────────────
   dashboardForm: {
     fontSize: "0.65rem",
     fontWeight: 400,
@@ -75,8 +74,6 @@ const typography = {
     color: "inherit",
     textAlign: "center",
   },
-
-  // Optional: label & header variants for dashboardForm
   dashboardFormLabel: {
     fontSize: "0.7rem",
     fontWeight: 500,
@@ -90,6 +87,46 @@ const typography = {
     letterSpacing: "0.01em",
     color: "#222",
   },
+
+  // ── TABLE SYSTEM ─────────────────────────────────────
+  table: {
+    header: {
+      fontSize: {
+        xs: "0.8rem",    // Mobile extra small
+        sm: "0.75rem",   // Tablet
+        md: "0.75rem",   // Desktop
+        lg: "0.8rem",    // Large desktop
+      },
+      fontWeight: 600,
+      lineHeight: 1.3,
+      letterSpacing: "0.05em",
+      textTransform: "uppercase",
+    },
+    cell: {
+      fontSize: {
+        xs: "0.75rem",   // Mobile (larger for readability)
+        sm: "0.7rem",    // Tablet
+        md: "0.65rem",   // Desktop (your current size)
+        lg: "0.65rem",   // Large desktop
+      },
+      fontWeight: 400,
+      lineHeight: 1.5,
+    },
+    statusBadge: {
+      fontSize: {
+        xs: "0.8rem",
+        sm: "0.75rem",
+        md: "0.75rem",
+        lg: "0.75rem",
+      },
+      fontWeight: 600,
+      textAlign: "center",
+      borderRadius: 2,
+      px: 1.5,
+      py: 0.5,
+    },
+  },
+
 };
 
 export default typography;
