@@ -1,19 +1,19 @@
 // src/app/router/routes.jsx
 import { lazy } from "react";
-import LazyRoute from "./LazyRoute";
+import LazyRoute from "@app/router/LazyRoute";
 
 // EAGER: Core pages → INSTANT navigation
-import PatientView from "@pages/PatientView";
+import PatientPage from "@/pages/PatientPage";
 import PatientTablePage from "@pages/PatientTablePage";
-import CalendarView from "@pages/CalendarView";
-import AppointmentsView from "@pages/AppointmentsView";
-import EncounterDashboard from "@features/encounters/dashboard/EncounterDashboard";
-import SystemConfigView from "@pages/SystemConfigView";
-import ReportsView from "@pages/ReportsView";
+import CalendarPage from "@/pages/CalendarPage";
+import AppointmentsPage from "@/pages/AppointmentsPage";
+import EncounterPage from "@features/encounters/dashboard/EncounterDashboard";
+import SystemConfigPage from "@/pages/SystemConfigPage";
+import ReportsPage from "@/pages/ReportsPage";
 
 // LAZY: Only login + 404
-const Login = lazy(() => import("@pages/Login"));
-const NotFound = lazy(() => import("@pages/NotFound"));
+const Login = lazy(() => import("@/pages/LoginPage"));
+const NotFound = lazy(() => import("@/pages/NotFoundPage"));
 
 export const publicRoutes = [
   {
@@ -23,13 +23,13 @@ export const publicRoutes = [
 ];
 
 export const protectedRoutes = [
-  { index: true, element: <PatientView /> },
-  { path: "Paciente", element: <PatientView /> },
+  { index: true, element: <PatientPage /> },
+  { path: "Paciente", element: <PatientPage /> },
   { path: "PacienteTabla", element: <PatientTablePage /> },
-  { path: "Agendamiento", element: <CalendarView /> },
-  { path: "Citas", element: <AppointmentsView /> },
-  { path: "EncounterDashboard", element: <EncounterDashboard /> },
-  { path: "Config", element: <SystemConfigView /> },
-  { path: "Informes", element: <ReportsView /> },
+  { path: "Agendamiento", element: <CalendarPage /> },
+  { path: "Citas", element: <AppointmentsPage /> },
+  { path: "EncounterDashboard", element: <EncounterPage /> },
+  { path: "Config", element: <SystemConfigPage /> },
+  { path: "Informes", element: <ReportsPage /> },
   { path: "*", element: <LazyRoute component={NotFound} /> },
 ];

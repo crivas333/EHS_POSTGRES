@@ -1,6 +1,6 @@
 //src/app/layouts/AuthLayout.jsx
 import React from 'react';
-import Login from '@pages/Login'; // Import Login directly
+import Login from '@/pages/LoginPage'; // Import Login directly
 
 export default function AuthLayout() {
   console.log("🔍 AuthLayout: Rendering");
