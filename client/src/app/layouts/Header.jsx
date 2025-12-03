@@ -1,4 +1,4 @@
-// client/src/app/layouts/MainHeader.jsx
+// client/src/app/layouts/Header.jsx
 import React from "react";
 import { styled } from "@mui/material/styles";
 import MuiAppBar from "@mui/material/AppBar";
@@ -107,4 +107,3 @@ export default function Header({ isMobile = false }) {
   );
 }
 
-//!isMobile && 

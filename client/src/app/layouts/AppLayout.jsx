@@ -4,10 +4,10 @@ import { Outlet } from "react-router-dom";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 
 import Header from "@/app/layouts/Header";
-import DrawerLeft from "@/app/layouts/DrawerLeft";
-import DrawerRight from "@/app/layouts/DrawerRight";
+import DrawerLeft from "@/app/layouts/DrawerLeft"; // Fixed name
+import DrawerRight from "@/app/layouts/DrawerRight"; // Fixed name
 import Main from "@/app/layouts/Main";
-import Footer from "@/app/layouts/Footer";           // ← Nuevo
+import Footer from "@/app/layouts/Footer";
 import { useLayoutStore } from "@app/store/layout-store";
 
 export default function AppLayout() {
@@ -19,29 +19,48 @@ export default function AppLayout() {
   const rightMenuButtonRef = React.useRef(null);
 
   return (
-    <>
-      {/* Tu layout original – 100% intacto */}
-      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-        <Header
-          isMobile={isMobile}
-          leftMenuButtonRef={leftMenuButtonRef}
-          rightMenuButtonRef={rightMenuButtonRef}
-        />
+    <Box sx={{ 
+      display: "flex", 
+      flexDirection: "column",
+      minHeight: "100vh", 
+      bgcolor: "background.default" 
+    }}>
+      {/* Header */}
+      <Header
+        isMobile={isMobile}
+        leftMenuButtonRef={leftMenuButtonRef}
+        rightMenuButtonRef={rightMenuButtonRef}
+      />
 
-        <DrawerLeft menuButtonRef={leftMenuButtonRef} isMobile={isMobile} />
+      {/* Main Content Area with Drawers */}
+      <Box sx={{ 
+        display: "flex", 
+        flex: 1,
+        position: "relative" 
+      }}>
+        <DrawerLeft 
+          menuButtonRef={leftMenuButtonRef} 
+          isMobile={isMobile}
+          window={window} // Added window prop
+        />
         
-        <Main isMobile={isMobile} openLeft={drawerLeftOpen} openRight={drawerRightOpen}>
+        <Main 
+          isMobile={isMobile} 
+          openLeft={drawerLeftOpen} 
+          openRight={drawerRightOpen}
+        >
           <Outlet />
         </Main>
         
-        <DrawerRight menuButtonRef={rightMenuButtonRef} isMobile={isMobile} />
+        <DrawerRight 
+          menuButtonRef={rightMenuButtonRef} 
+          isMobile={isMobile}
+          window={window} // Added window prop
+        />
       </Box>
 
-      {/* Footer reutilizable – ahora SÍ se ve */}
+      {/* Footer */}
       <Footer />
-
-      {/* Espacio para que no tape el contenido */}
-      <Box sx={{ height: { xs: 64, sm: 56 } }} />
-    </>
+    </Box>
   );
 }

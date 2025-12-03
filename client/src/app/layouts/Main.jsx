@@ -1,4 +1,4 @@
-// src/app/layouts/LayoutMain.jsx
+// src/app/layouts/Main.jsx
 import React from "react";
 import { styled } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
