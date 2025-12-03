@@ -91,7 +91,7 @@ export default function Header({ isMobile = false }) {
             </Tooltip>
 
             {/* Panel Derecho – solo escritorio */}
-            {!isMobile && (
+            {(
               <Tooltip
                 title={drawerRightOpen ? "Ocultar panel derecho" : "Mostrar panel derecho"}
               >
@@ -106,3 +106,5 @@ export default function Header({ isMobile = false }) {
     </StyledAppBar>
   );
 }
+
+//!isMobile && 

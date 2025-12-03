@@ -1,4 +1,4 @@
-// client/src/app/layouts/LayoutDrawerLeft.jsx
+// client/src/app/layouts/DrawerLeft.jsx
 import React, { useEffect, useRef } from "react";
 import {
   Drawer,
