@@ -40,7 +40,7 @@ const StyledAppBar = styled(MuiAppBar, {
       }),
 }));
 
-export default function MainHeader({ isMobile = false }) {
+export default function Header({ isMobile = false }) {
   const { mode, toggleMode } = useThemeMode();
   const appBarHeight = useAppBarHeight();
   const { drawerLeftOpen, drawerRightOpen, toggleDrawerLeft, toggleDrawerRight } =

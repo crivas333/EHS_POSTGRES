@@ -22,7 +22,7 @@ import { useLayoutStore } from "@app/store/layout-store"; // ← ¡AQUÍ ESTÁ L
 
 const DRAWER_WIDTH = 240;
 
-export default function LayoutDrawerLeft({ window, menuButtonRef }) {
+export default function DrawerLeft({ window, menuButtonRef }) {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));

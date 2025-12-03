@@ -194,7 +194,15 @@ export default function TableOfAppointments({
                       }
 
                       return (
-                        <TableCell key={cell.id}>
+                        <TableCell 
+                          key={cell.id}
+                           sx={{
+                              ...theme.typography.table.cell,
+                              //backgroundColor: rowColor,
+                              //color: "#fff",
+                            }}
+                          
+                          >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

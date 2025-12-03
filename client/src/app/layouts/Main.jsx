@@ -5,7 +5,7 @@ import Toolbar from "@mui/material/Toolbar";
 
 const DRAWER_WIDTH = 240;
 
-const Main = styled("main", {
+const MainStyled = styled("main", {
   shouldForwardProp: (prop) =>
     !["openLeft", "openRight", "isMobile"].includes(prop),
 })(({ theme, openLeft, openRight, isMobile }) => ({
@@ -56,18 +56,18 @@ const Content = styled("div")(({ theme }) => ({
   WebkitOverflowScrolling: "touch", // iOS smooth scroll
 }));
 
-export default function LayoutMain({
+export default function Main({
   children,
   isMobile = false,
   openLeft = false,
   openRight = false,
 }) {
   return (
-    <Main openLeft={openLeft} openRight={openRight} isMobile={isMobile}>
+    <MainStyled openLeft={openLeft} openRight={openRight} isMobile={isMobile}>
       {/* Ya no necesitas <Toolbar /> → el paddingTop lo maneja el Main */}
       <Content>
         {children}
       </Content>
-    </Main>
+    </MainStyled>
   );
 }

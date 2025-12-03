@@ -3,7 +3,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 
-import MainHeader from "@/app/layouts/MainHeader";
+import Header from "@/app/layouts/Header";
 import DrawerLeft from "@/app/layouts/DrawerLeft";
 import DrawerRight from "@/app/layouts/DrawerRight";
 import Main from "@/app/layouts/Main";
@@ -22,7 +22,7 @@ export default function AppLayout() {
     <>
       {/* Tu layout original – 100% intacto */}
       <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-        <MainHeader
+        <Header
           isMobile={isMobile}
           leftMenuButtonRef={leftMenuButtonRef}
           rightMenuButtonRef={rightMenuButtonRef}

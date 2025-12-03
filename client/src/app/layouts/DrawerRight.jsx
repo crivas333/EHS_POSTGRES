@@ -22,7 +22,7 @@ import rightDrawerConfig from "@app/config/drawer-right-config"; // ← Archivo 
 
 const DRAWER_WIDTH = 240;
 
-export default function LayoutDrawerRight({ window, menuButtonRef }) {
+export default function DrawerRight({ window, menuButtonRef }) {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
